@@ -1,0 +1,124 @@
+#! /usr/bin/env python3
+
+import requests
+import threading
+import os
+import psycopg2
+import psycopg2.extras
+import json
+import hashlib
+import time
+
+WATCHED_EXTS = [".sh", ".sql"]
+IGNORE_DIRS = [".git"]
+
+def run_sync(attendanceId):
+    fileUploader = FileUploader(attendanceId)
+    watcher = Watcher(fileUploader)
+    while True:
+        watcher.pollDirectoryForChanges("src")
+        time.sleep(1)
+
+def pg_update():
+    pg_executor = PgExec()
+    watcher = Watcher(pg_executor)
+    while True:
+        watcher.pollDirectoryForChanges("src")
+        time.sleep(1)
+
+def swsync():
+    print("  _____ _    _ _ _            __          ___           _      ")
+    print(" / ____| |  (_) | |           \\ \\        / / |         | |     ")
+    print("| (___ | | ___| | | ___ _ __   \\ \\  /\\  / /| |__   __ _| | ___ ")
+    print(" \\___ \\| |/ / | | |/ _ \\ '__|   \\ \\/  \\/ / | '_ \\ / _` | |/ _ \\")
+    print(" ____) |   <| | | |  __/ |       \\  /\\  /  | | | | (_| | |  __/")
+    print("|_____/|_|\\_\\_|_|_|\\___|_|        \\/  \\/   |_| |_|\\__,_|_|\\___| ")
+    print("")
+    attendanceId = os.environ.get("ATTENDANCE_ID")
+    print("")
+    print(f'We\'re going to start watching this directory for changes so that the trainer can see your progress, using id {attendanceId}')
+
+    sync_thread = threading.Thread(target=run_sync, args=[attendanceId])
+    sync_thread.start()
+
+    pg_update()
+
+class PgExec:
+    def __init__(self):
+        connection_string = os.environ.get("PSYCOPG_CONNECTION_STRING")
+        print(connection_string)
+        self.connection = psycopg2.connect(connection_string)
+
+    def fileChanged(self, path):
+        print("")
+        print(f'RUNNING FILE {path}')
+        print("")
+        with open(path, "r") as f:
+            contents = f.read()
+
+            with self.connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+                cursor.execute(contents)
+                results = cursor.fetchall()
+                for result in results:
+                    print("--- ROW ---")
+                    for key in result:
+                        print(str(key).upper() + ": " + str(result[key]))
+                    print("")
+
+class FileUploader:
+    def __init__(self, attendanceId):
+        self.attendanceId = attendanceId
+
+    def fileChanged(self, path):
+        # print("File changed, uploading: %s" % path)
+        with open(path, "r") as f:
+            data = json.dumps({
+                "relative_path": path,
+                "contents": f.read()
+                })
+
+            hostname = os.environ.get('SERVER_URL', "https://train.skillerwhale.com")
+            path = "/attendances/%s/file_snapshots" % self.attendanceId
+            uri = requests.compat.urljoin(hostname, path)
+
+            headers = {
+                    "Content-Type": "application/json",
+                    "Content-Length": str(len(data))
+                    }
+
+            response = requests.post(uri, data=data, headers=headers)
+            if(response.status_code != 200):
+                print(response.status_code)
+                txt = response.text
+                if txt:
+                    print(txt)
+
+class Watcher:
+    def __init__(self, fileChangedResponder):
+        self.fileChangedResponder = fileChangedResponder
+        self.fileHashes = {}
+
+    def hashFile(self, path):
+        with open(path, "r") as f:
+            contents = f.read()
+            return hashlib.md5(contents.encode("utf-8")).hexdigest()
+
+    def pollDirectoryForChanges(self, dirPath):
+        if os.path.basename(dirPath) in IGNORE_DIRS:
+            return
+        for filename in os.listdir(dirPath):
+            newPath = os.path.join(dirPath, filename)
+            if not os.path.isfile(newPath):
+              self.pollDirectoryForChanges(newPath)
+            else:
+                _, extname = os.path.splitext(newPath)
+                if extname in WATCHED_EXTS:
+                    hashed = self.hashFile(newPath)
+                    if newPath in self.fileHashes:
+                      oldHash = self.fileHashes.get(newPath)
+                      if oldHash != hashed:
+                          self.fileChangedResponder.fileChanged(newPath)
+                    self.fileHashes[newPath] = hashed
+
+if __name__ == "__main__":
+    swsync()
