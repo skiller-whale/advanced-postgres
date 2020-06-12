@@ -1,0 +1,24 @@
+version: '2.4'
+services:
+  db:
+    image: postgres:13-alpine
+    volumes:
+      - ./postgres_init:/docker-entrypoint-initdb.d
+    environment:
+      - POSTGRES_PASSWORD=123
+    ports:
+      - 5432
+  sync:
+    build:
+      context: .
+    environment:
+      - ATTENDANCE_ID=your_attendance_id_goes_here
+      - PSYCOPG_CONNECTION_STRING=dbname=postgres user=postgres password=123 host=db
+    depends_on:
+      - db
+    links:
+      - db
+    volumes:
+      - .:/src
+    stdin_open: true
+    tty: true
