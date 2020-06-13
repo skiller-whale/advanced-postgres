@@ -14,8 +14,8 @@ WATCHED_EXTS = [".sh", ".sql"]
 IGNORE_DIRS = [".git"]
 
 
-def run_sync(attendanceId):
-    fileUploader = FileUploader(attendanceId)
+def run_sync(attendance_id):
+    fileUploader = FileUploader(attendance_id)
     watcher = Watcher(fileUploader)
     while True:
         watcher.pollDirectoryForChanges("src")
@@ -38,11 +38,11 @@ def swsync():
     print(" ____) |   <| | | |  __/ |       \\  /\\  /  | | | | (_| | |  __/")
     print("|_____/|_|\\_\\_|_|_|\\___|_|        \\/  \\/   |_| |_|\\__,_|_|\\___| ")
     print("")
-    attendanceId = os.environ.get("ATTENDANCE_ID")
+    attendance_id = os.environ.get("ATTENDANCE_ID")
     print("")
-    print(f'We\'re going to start watching this directory for changes so that the trainer can see your progress, using id {attendanceId}')
+    print(f'We\'re going to start watching this directory for changes so that the trainer can see your progress, using id {attendance_id}')
 
-    sync_thread = threading.Thread(target=run_sync, args=[attendanceId])
+    sync_thread = threading.Thread(target=run_sync, args=[attendance_id])
     sync_thread.start()
 
     pg_update()
@@ -72,8 +72,8 @@ class PgExec:
 
 
 class FileUploader:
-    def __init__(self, attendanceId):
-        self.attendanceId = attendanceId
+    def __init__(self, attendance_id):
+        self.attendance_id = attendance_id
 
     def fileChanged(self, path):
         # print("File changed, uploading: %s" % path)
@@ -84,7 +84,7 @@ class FileUploader:
                 })
 
             hostname = os.environ.get('SERVER_URL', "https://train.skillerwhale.com")
-            path = "/attendances/%s/file_snapshots" % self.attendanceId
+            path = "/attendances/%s/file_snapshots" % self.attendance_id
             uri = requests.compat.urljoin(hostname, path)
 
             headers = {
