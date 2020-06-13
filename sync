@@ -30,7 +30,7 @@ def pg_update():
         time.sleep(1)
 
 
-def swsync():
+def skiller_whale_sync():
     print("  _____ _    _ _ _            __          ___           _      ")
     print(" / ____| |  (_) | |           \\ \\        / / |         | |     ")
     print("| (___ | | ___| | | ___ _ __   \\ \\  /\\  / /| |__   __ _| | ___ ")
@@ -129,4 +129,4 @@ class Watcher:
 
 
 if __name__ == "__main__":
-    swsync()
+    skiller_whale_sync()
