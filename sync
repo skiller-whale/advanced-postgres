@@ -83,11 +83,16 @@ class PgExec:
         with open(path, "r") as f:
             contents = f.read()
 
-        for result in self.execute_query(contents):
-            print("--- ROW ---")
-            for key in result:
-                print(str(key).upper() + ": " + str(result[key]))
-            print("")
+        try:
+            query_results = self.execute_query(contents)
+        except psycopg2.Error as err:
+            print("POSTGRES ERROR:", err)
+        else:
+            for result in query_results:
+                print("--- ROW ---")
+                for key in result:
+                    print(str(key).upper() + ": " + str(result[key]))
+                print("")
 
 
 class FileUploader:
