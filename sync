@@ -51,8 +51,15 @@ def skiller_whale_sync():
 
 class PgExec:
     def __init__(self, connection_string):
+        self.connection_string = connection_string
         print(connection_string)
-        self.connection = psycopg2.connect(connection_string)
+        self._connection = None
+
+    @property
+    def connection(self):
+        if self._connection is None:
+            self._connection = psycopg2.connect(self.connection_string)
+        return self._connection
 
     def file_changed(self, path):
         print("")
