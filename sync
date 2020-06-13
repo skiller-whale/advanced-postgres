@@ -8,6 +8,7 @@ import psycopg2.extras
 import json
 import hashlib
 import time
+from urllib.parse import urljoin
 
 
 WATCHED_EXTS = [".sh", ".sql"]
@@ -16,17 +17,17 @@ IGNORE_DIRS = [".git"]
 
 def run_sync(attendance_id):
     file_uploader = FileUploader(attendance_id)
-    watcher = Watcher(file_uploader)
+    watcher = Watcher(file_uploader, base_path="src")
     while True:
-        watcher.poll_directory_for_changes("src")
+        watcher.poll_for_changes()
         time.sleep(1)
 
 
 def pg_update():
     pg_executor = PgExec()
-    watcher = Watcher(pg_executor)
+    watcher = Watcher(pg_executor, base_path="src")
     while True:
-        watcher.poll_directory_for_changes("src")
+        watcher.poll_for_changes()
         time.sleep(1)
 
 
@@ -75,57 +76,94 @@ class FileUploader:
     def __init__(self, attendance_id):
         self.attendance_id = attendance_id
 
-    def file_changed(self, path):
-        # print("File changed, uploading: %s" % path)
+    @property
+    def hostname(self):
+        return os.environ.get('SERVER_URL', "https://train.skillerwhale.com")
+
+    @property
+    def updates_path(self):
+        return f'attendances/{self.attendance_id}/file_snapshots'
+
+    @property
+    def updates_uri(self):
+        return urljoin(self.hostname, self.updates_path)
+
+    @staticmethod
+    def get_file_data(path):
         with open(path, "r") as f:
-            data = json.dumps({
-                "relative_path": path,
-                "contents": f.read()
-                })
+            data ={"relative_path": path, "contents": f.read()}
+            return json.dumps(data)
 
-            hostname = os.environ.get('SERVER_URL', "https://train.skillerwhale.com")
-            path = "/attendances/%s/file_snapshots" % self.attendance_id
-            uri = requests.compat.urljoin(hostname, path)
+    @staticmethod
+    def get_headers(data):
+        return {
+            "Content-Type": "application/json",
+            "Content-Length": str(len(data))
+        }
 
-            headers = {
-                "Content-Type": "application/json",
-                "Content-Length": str(len(data))
-                }
+    def post_file(self, path):
+        data = self.get_file_data(path)
+        headers = self.get_headers(data)
+        return requests.post(self.updates_uri, data=data, headers=headers)
 
-            response = requests.post(uri, data=data, headers=headers)
-            if(response.status_code != 200):
-                print(response.status_code)
-                txt = response.text
-                if txt:
-                    print(txt)
+    def file_changed(self, path):
+        print(f"Uploading: {path}", end='\t')
+        if not self.attendance_id:
+            print("No attendance id set; file update not sent.")
+            return
+
+        response = self.post_file(path)
+        print(f"Status: {response.status_code}")
+
+        if response.text:
+            print(response.text)
 
 
 class Watcher:
-    def __init__(self, file_changed_responder):
-        self.file_changed_responder = file_changed_responder
-        self.file_hashes = {}
+    def __init__(self, responder, base_path='.'):
+        self.responder = responder
+        self.base_path = base_path
+        self._file_hashes = {}
+        # Tracks whether this is the first pass of the directory tree. If not,
+        # then any new file encountered will be treated as an update.
+        self._first_pass = True
 
-    def hash_file(self, path):
-        with open(path, "r") as f:
+    @staticmethod
+    def get_file_hash(path):
+        """Return a hash digest of the file located at path"""
+        with open(path, "rb") as f:
             contents = f.read()
-            return hashlib.md5(contents.encode("utf-8")).hexdigest()
+            return hashlib.md5(contents).hexdigest()
 
-    def poll_directory_for_changes(self, dirPath):
-        if os.path.basename(dirPath) in IGNORE_DIRS:
+    def _respond_to_file_change(self, path):
+        _, extension = os.path.splitext(path)
+        if extension not in WATCHED_EXTS:
             return
-        for filename in os.listdir(dirPath):
-            new_path = os.path.join(dirPath, filename)
-            if not os.path.isfile(new_path):
-                self.poll_directory_for_changes(new_path)
+
+        hashed = self.get_file_hash(path)
+        if not self._first_pass:
+            old_hash = self._file_hashes.get(path)
+            if old_hash != hashed:
+                self.responder.file_changed(path)
+        self._file_hashes[path] = hashed
+
+    def _check_dir_for_changes(self, dir_path):
+        if os.path.basename(dir_path) in IGNORE_DIRS:
+            return
+
+        for filename in os.listdir(dir_path):
+            new_path = os.path.join(dir_path, filename)
+            if os.path.isdir(new_path):
+                # Recursively check subdirectories
+                self._check_dir_for_changes(new_path)
             else:
-                _, extname = os.path.splitext(new_path)
-                if extname in WATCHED_EXTS:
-                    hashed = self.hash_file(new_path)
-                    if new_path in self.file_hashes:
-                        oldHash = self.file_hashes.get(new_path)
-                        if oldHash != hashed:
-                             self.file_changed_responder.file_changed(new_path)
-                    self.file_hashes[new_path] = hashed
+                self._respond_to_file_change(new_path)
+
+    def poll_for_changes(self, wait_time=1):
+        while True:
+            self._check_dir_for_changes(self.base_path)
+            self._first_pass = False
+            time.sleep(wait_time)  # Poll for changes every `wait_time` seconds
 
 
 if __name__ == "__main__":
