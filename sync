@@ -114,18 +114,18 @@ class Watcher:
         if os.path.basename(dirPath) in IGNORE_DIRS:
             return
         for filename in os.listdir(dirPath):
-            newPath = os.path.join(dirPath, filename)
-            if not os.path.isfile(newPath):
-              self.poll_directory_for_changes(newPath)
+            new_path = os.path.join(dirPath, filename)
+            if not os.path.isfile(new_path):
+              self.poll_directory_for_changes(new_path)
             else:
-                _, extname = os.path.splitext(newPath)
+                _, extname = os.path.splitext(new_path)
                 if extname in WATCHED_EXTS:
-                    hashed = self.hashFile(newPath)
-                    if newPath in self.fileHashes:
-                      oldHash = self.fileHashes.get(newPath)
+                    hashed = self.hashFile(new_path)
+                    if new_path in self.fileHashes:
+                      oldHash = self.fileHashes.get(new_path)
                       if oldHash != hashed:
-                          self.file_changed_responder.fileChanged(newPath)
-                    self.fileHashes[newPath] = hashed
+                          self.file_changed_responder.fileChanged(new_path)
+                    self.fileHashes[new_path] = hashed
 
 
 if __name__ == "__main__":
