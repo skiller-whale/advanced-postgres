@@ -9,8 +9,10 @@ import json
 import hashlib
 import time
 
+
 WATCHED_EXTS = [".sh", ".sql"]
 IGNORE_DIRS = [".git"]
+
 
 def run_sync(attendanceId):
     fileUploader = FileUploader(attendanceId)
@@ -19,12 +21,14 @@ def run_sync(attendanceId):
         watcher.pollDirectoryForChanges("src")
         time.sleep(1)
 
+
 def pg_update():
     pg_executor = PgExec()
     watcher = Watcher(pg_executor)
     while True:
         watcher.pollDirectoryForChanges("src")
         time.sleep(1)
+
 
 def swsync():
     print("  _____ _    _ _ _            __          ___           _      ")
@@ -42,6 +46,7 @@ def swsync():
     sync_thread.start()
 
     pg_update()
+
 
 class PgExec:
     def __init__(self):
@@ -64,6 +69,7 @@ class PgExec:
                     for key in result:
                         print(str(key).upper() + ": " + str(result[key]))
                     print("")
+
 
 class FileUploader:
     def __init__(self, attendanceId):
@@ -93,6 +99,7 @@ class FileUploader:
                 if txt:
                     print(txt)
 
+
 class Watcher:
     def __init__(self, fileChangedResponder):
         self.fileChangedResponder = fileChangedResponder
@@ -119,6 +126,7 @@ class Watcher:
                       if oldHash != hashed:
                           self.fileChangedResponder.fileChanged(newPath)
                     self.fileHashes[newPath] = hashed
+
 
 if __name__ == "__main__":
     swsync()
