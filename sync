@@ -101,8 +101,6 @@ class FileUploader:
 
 
 class Watcher:
-    # TODO: This class is almost identical to the one in the python-essentials
-    # repo. We should put these in a consistent place somewhere...
     def __init__(self, responder, base_path='.'):
         self.responder = responder
         self.base_path = base_path
