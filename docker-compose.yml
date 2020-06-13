@@ -19,6 +19,6 @@ services:
     links:
       - db
     volumes:
-      - .:/src
+      - ./src:/src
     stdin_open: true
     tty: true
