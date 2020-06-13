@@ -88,9 +88,9 @@ class FileUploader:
             uri = requests.compat.urljoin(hostname, path)
 
             headers = {
-                    "Content-Type": "application/json",
-                    "Content-Length": str(len(data))
-                    }
+                "Content-Type": "application/json",
+                "Content-Length": str(len(data))
+                }
 
             response = requests.post(uri, data=data, headers=headers)
             if(response.status_code != 200):
@@ -116,15 +116,15 @@ class Watcher:
         for filename in os.listdir(dirPath):
             new_path = os.path.join(dirPath, filename)
             if not os.path.isfile(new_path):
-              self.poll_directory_for_changes(new_path)
+                self.poll_directory_for_changes(new_path)
             else:
                 _, extname = os.path.splitext(new_path)
                 if extname in WATCHED_EXTS:
                     hashed = self.hash_file(new_path)
                     if new_path in self.file_hashes:
-                      oldHash = self.file_hashes.get(new_path)
-                      if oldHash != hashed:
-                          self.file_changed_responder.file_changed(new_path)
+                        oldHash = self.file_hashes.get(new_path)
+                        if oldHash != hashed:
+                             self.file_changed_responder.file_changed(new_path)
                     self.file_hashes[new_path] = hashed
 
 
