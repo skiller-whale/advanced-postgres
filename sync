@@ -8,6 +8,7 @@ import psycopg2.extras
 import json
 import hashlib
 import time
+from urllib.parse import urljoin
 
 
 WATCHED_EXTS = [".sh", ".sql"]
@@ -80,8 +81,12 @@ class FileUploader:
         return os.environ.get('SERVER_URL', "https://train.skillerwhale.com")
 
     @property
+    def updates_path(self):
+        return f'attendances/{self.attendance_id}/file_snapshots'
+
+    @property
     def updates_uri(self):
-        return f"{self.hostname}/attendances/{self.attendance_id}/file_snapshots"
+        return urljoin(self.hostname, self.updates_path)
 
     @staticmethod
     def get_file_data(path):
