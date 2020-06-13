@@ -9,24 +9,28 @@ import json
 import hashlib
 import time
 
+
 WATCHED_EXTS = [".sh", ".sql"]
 IGNORE_DIRS = [".git"]
 
-def run_sync(attendanceId):
-    fileUploader = FileUploader(attendanceId)
-    watcher = Watcher(fileUploader)
+
+def run_sync(attendance_id):
+    file_uploader = FileUploader(attendance_id)
+    watcher = Watcher(file_uploader)
     while True:
-        watcher.pollDirectoryForChanges("src")
+        watcher.poll_directory_for_changes("src")
         time.sleep(1)
+
 
 def pg_update():
     pg_executor = PgExec()
     watcher = Watcher(pg_executor)
     while True:
-        watcher.pollDirectoryForChanges("src")
+        watcher.poll_directory_for_changes("src")
         time.sleep(1)
 
-def swsync():
+
+def skiller_whale_sync():
     print("  _____ _    _ _ _            __          ___           _      ")
     print(" / ____| |  (_) | |           \\ \\        / / |         | |     ")
     print("| (___ | | ___| | | ___ _ __   \\ \\  /\\  / /| |__   __ _| | ___ ")
@@ -34,14 +38,15 @@ def swsync():
     print(" ____) |   <| | | |  __/ |       \\  /\\  /  | | | | (_| | |  __/")
     print("|_____/|_|\\_\\_|_|_|\\___|_|        \\/  \\/   |_| |_|\\__,_|_|\\___| ")
     print("")
-    attendanceId = os.environ.get("ATTENDANCE_ID")
+    attendance_id = os.environ.get("ATTENDANCE_ID")
     print("")
-    print(f'We\'re going to start watching this directory for changes so that the trainer can see your progress, using id {attendanceId}')
+    print(f'We\'re going to start watching this directory for changes so that the trainer can see your progress, using id {attendance_id}')
 
-    sync_thread = threading.Thread(target=run_sync, args=[attendanceId])
+    sync_thread = threading.Thread(target=run_sync, args=[attendance_id])
     sync_thread.start()
 
     pg_update()
+
 
 class PgExec:
     def __init__(self):
@@ -49,7 +54,7 @@ class PgExec:
         print(connection_string)
         self.connection = psycopg2.connect(connection_string)
 
-    def fileChanged(self, path):
+    def file_changed(self, path):
         print("")
         print(f'RUNNING FILE {path}')
         print("")
@@ -65,11 +70,12 @@ class PgExec:
                         print(str(key).upper() + ": " + str(result[key]))
                     print("")
 
-class FileUploader:
-    def __init__(self, attendanceId):
-        self.attendanceId = attendanceId
 
-    def fileChanged(self, path):
+class FileUploader:
+    def __init__(self, attendance_id):
+        self.attendance_id = attendance_id
+
+    def file_changed(self, path):
         # print("File changed, uploading: %s" % path)
         with open(path, "r") as f:
             data = json.dumps({
@@ -78,13 +84,13 @@ class FileUploader:
                 })
 
             hostname = os.environ.get('SERVER_URL', "https://train.skillerwhale.com")
-            path = "/attendances/%s/file_snapshots" % self.attendanceId
+            path = "/attendances/%s/file_snapshots" % self.attendance_id
             uri = requests.compat.urljoin(hostname, path)
 
             headers = {
-                    "Content-Type": "application/json",
-                    "Content-Length": str(len(data))
-                    }
+                "Content-Type": "application/json",
+                "Content-Length": str(len(data))
+                }
 
             response = requests.post(uri, data=data, headers=headers)
             if(response.status_code != 200):
@@ -93,32 +99,34 @@ class FileUploader:
                 if txt:
                     print(txt)
 
-class Watcher:
-    def __init__(self, fileChangedResponder):
-        self.fileChangedResponder = fileChangedResponder
-        self.fileHashes = {}
 
-    def hashFile(self, path):
+class Watcher:
+    def __init__(self, file_changed_responder):
+        self.file_changed_responder = file_changed_responder
+        self.file_hashes = {}
+
+    def hash_file(self, path):
         with open(path, "r") as f:
             contents = f.read()
             return hashlib.md5(contents.encode("utf-8")).hexdigest()
 
-    def pollDirectoryForChanges(self, dirPath):
+    def poll_directory_for_changes(self, dirPath):
         if os.path.basename(dirPath) in IGNORE_DIRS:
             return
         for filename in os.listdir(dirPath):
-            newPath = os.path.join(dirPath, filename)
-            if not os.path.isfile(newPath):
-              self.pollDirectoryForChanges(newPath)
+            new_path = os.path.join(dirPath, filename)
+            if not os.path.isfile(new_path):
+                self.poll_directory_for_changes(new_path)
             else:
-                _, extname = os.path.splitext(newPath)
+                _, extname = os.path.splitext(new_path)
                 if extname in WATCHED_EXTS:
-                    hashed = self.hashFile(newPath)
-                    if newPath in self.fileHashes:
-                      oldHash = self.fileHashes.get(newPath)
-                      if oldHash != hashed:
-                          self.fileChangedResponder.fileChanged(newPath)
-                    self.fileHashes[newPath] = hashed
+                    hashed = self.hash_file(new_path)
+                    if new_path in self.file_hashes:
+                        oldHash = self.file_hashes.get(new_path)
+                        if oldHash != hashed:
+                             self.file_changed_responder.file_changed(new_path)
+                    self.file_hashes[new_path] = hashed
+
 
 if __name__ == "__main__":
-    swsync()
+    skiller_whale_sync()
