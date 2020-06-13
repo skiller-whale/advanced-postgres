@@ -15,8 +15,8 @@ IGNORE_DIRS = [".git"]
 
 
 def run_sync(attendance_id):
-    fileUploader = FileUploader(attendance_id)
-    watcher = Watcher(fileUploader)
+    file_uploader = FileUploader(attendance_id)
+    watcher = Watcher(file_uploader)
     while True:
         watcher.pollDirectoryForChanges("src")
         time.sleep(1)
