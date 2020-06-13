@@ -86,6 +86,7 @@ class PgExec:
         try:
             query_results = self.execute_query(contents)
         except psycopg2.Error as err:
+            self.connection.rollback()
             print("POSTGRES ERROR:", err)
         else:
             for result in query_results:
