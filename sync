@@ -54,7 +54,7 @@ class PgExec:
         print(connection_string)
         self.connection = psycopg2.connect(connection_string)
 
-    def fileChanged(self, path):
+    def file_changed(self, path):
         print("")
         print(f'RUNNING FILE {path}')
         print("")
@@ -75,7 +75,7 @@ class FileUploader:
     def __init__(self, attendance_id):
         self.attendance_id = attendance_id
 
-    def fileChanged(self, path):
+    def file_changed(self, path):
         # print("File changed, uploading: %s" % path)
         with open(path, "r") as f:
             data = json.dumps({
@@ -124,7 +124,7 @@ class Watcher:
                     if new_path in self.file_hashes:
                       oldHash = self.file_hashes.get(new_path)
                       if oldHash != hashed:
-                          self.file_changed_responder.fileChanged(new_path)
+                          self.file_changed_responder.file_changed(new_path)
                     self.file_hashes[new_path] = hashed
 
 
