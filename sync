@@ -75,29 +75,43 @@ class FileUploader:
     def __init__(self, attendance_id):
         self.attendance_id = attendance_id
 
-    def file_changed(self, path):
-        # print("File changed, uploading: %s" % path)
+    @property
+    def hostname(self):
+        return os.environ.get('SERVER_URL', "https://train.skillerwhale.com")
+
+    @property
+    def updates_uri(self):
+        return f"{self.hostname}/attendances/{self.attendance_id}/file_snapshots"
+
+    @staticmethod
+    def get_file_data(path):
         with open(path, "r") as f:
-            data = json.dumps({
-                "relative_path": path,
-                "contents": f.read()
-                })
+            data ={"relative_path": path, "contents": f.read()}
+            return json.dumps(data)
 
-            hostname = os.environ.get('SERVER_URL', "https://train.skillerwhale.com")
-            path = "/attendances/%s/file_snapshots" % self.attendance_id
-            uri = requests.compat.urljoin(hostname, path)
+    @staticmethod
+    def get_headers(data):
+        return {
+            "Content-Type": "application/json",
+            "Content-Length": str(len(data))
+        }
 
-            headers = {
-                "Content-Type": "application/json",
-                "Content-Length": str(len(data))
-                }
+    def post_file(self, path):
+        data = self.get_file_data(path)
+        headers = self.get_headers(data)
+        return requests.post(self.updates_uri, data=data, headers=headers)
 
-            response = requests.post(uri, data=data, headers=headers)
-            if(response.status_code != 200):
-                print(response.status_code)
-                txt = response.text
-                if txt:
-                    print(txt)
+    def file_changed(self, path):
+        print(f"Uploading: {path}", end='\t')
+        if not self.attendance_id:
+            print("No attendance id set; file update not sent.")
+            return
+
+        response = self.post_file(path)
+        print(f"Status: {response.status_code}")
+
+        if response.text:
+            print(response.text)
 
 
 class Watcher:
