@@ -24,7 +24,7 @@ def run_sync(attendance_id):
 
 
 def pg_update():
-    pg_executor = PgExec()
+    pg_executor = PgExec(os.environ.get("PSYCOPG_CONNECTION_STRING"))
     watcher = Watcher(pg_executor, base_path="src")
     while True:
         watcher.poll_for_changes()
@@ -50,10 +50,26 @@ def skiller_whale_sync():
 
 
 class PgExec:
-    def __init__(self):
-        connection_string = os.environ.get("PSYCOPG_CONNECTION_STRING")
+    RETRY_TIME = 2
+
+    def __init__(self, connection_string):
+        self.connection_string = connection_string
         print(connection_string)
-        self.connection = psycopg2.connect(connection_string)
+        self._connection = None
+
+    @property
+    def connection(self):
+        if self._connection is None:
+            self._connection = self._get_connection()
+        return self._connection
+
+    def _get_connection(self):
+        while True:
+            try:
+                return psycopg2.connect(self.connection_string)
+            except psycopg2.OperationalError:
+                print(f"Could not find the database, retrying in {self.RETRY_TIME}s")
+                time.sleep(self.RETRY_TIME)
 
     def file_changed(self, path):
         print("")
