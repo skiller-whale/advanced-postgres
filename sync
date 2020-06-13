@@ -24,7 +24,7 @@ def run_sync(attendance_id):
 
 
 def pg_update():
-    pg_executor = PgExec()
+    pg_executor = PgExec(os.environ.get("PSYCOPG_CONNECTION_STRING"))
     watcher = Watcher(pg_executor, base_path="src")
     while True:
         watcher.poll_for_changes()
@@ -50,8 +50,7 @@ def skiller_whale_sync():
 
 
 class PgExec:
-    def __init__(self):
-        connection_string = os.environ.get("PSYCOPG_CONNECTION_STRING")
+    def __init__(self, connection_string):
         print(connection_string)
         self.connection = psycopg2.connect(connection_string)
 
