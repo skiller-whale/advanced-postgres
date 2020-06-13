@@ -71,6 +71,11 @@ class PgExec:
                 print(f"Could not find the database, retrying in {self.RETRY_TIME}s")
                 time.sleep(self.RETRY_TIME)
 
+    def execute_query(self, query):
+        with self.connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+            cursor.execute(query)
+            return cursor.fetchall()
+
     def file_changed(self, path):
         print("")
         print(f'RUNNING FILE {path}')
@@ -78,14 +83,11 @@ class PgExec:
         with open(path, "r") as f:
             contents = f.read()
 
-            with self.connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
-                cursor.execute(contents)
-                results = cursor.fetchall()
-                for result in results:
-                    print("--- ROW ---")
-                    for key in result:
-                        print(str(key).upper() + ": " + str(result[key]))
-                    print("")
+        for result in self.execute_query(contents):
+            print("--- ROW ---")
+            for key in result:
+                print(str(key).upper() + ": " + str(result[key]))
+            print("")
 
 
 class FileUploader:
