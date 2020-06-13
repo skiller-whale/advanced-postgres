@@ -18,7 +18,7 @@ def run_sync(attendance_id):
     file_uploader = FileUploader(attendance_id)
     watcher = Watcher(file_uploader)
     while True:
-        watcher.pollDirectoryForChanges("src")
+        watcher.poll_directory_for_changes("src")
         time.sleep(1)
 
 
@@ -26,7 +26,7 @@ def pg_update():
     pg_executor = PgExec()
     watcher = Watcher(pg_executor)
     while True:
-        watcher.pollDirectoryForChanges("src")
+        watcher.poll_directory_for_changes("src")
         time.sleep(1)
 
 
@@ -110,13 +110,13 @@ class Watcher:
             contents = f.read()
             return hashlib.md5(contents.encode("utf-8")).hexdigest()
 
-    def pollDirectoryForChanges(self, dirPath):
+    def poll_directory_for_changes(self, dirPath):
         if os.path.basename(dirPath) in IGNORE_DIRS:
             return
         for filename in os.listdir(dirPath):
             newPath = os.path.join(dirPath, filename)
             if not os.path.isfile(newPath):
-              self.pollDirectoryForChanges(newPath)
+              self.poll_directory_for_changes(newPath)
             else:
                 _, extname = os.path.splitext(newPath)
                 if extname in WATCHED_EXTS:
