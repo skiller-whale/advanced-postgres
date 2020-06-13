@@ -50,6 +50,8 @@ def skiller_whale_sync():
 
 
 class PgExec:
+    RETRY_TIME = 2
+
     def __init__(self, connection_string):
         self.connection_string = connection_string
         print(connection_string)
@@ -58,8 +60,16 @@ class PgExec:
     @property
     def connection(self):
         if self._connection is None:
-            self._connection = psycopg2.connect(self.connection_string)
+            self._connection = self._get_connection()
         return self._connection
+
+    def _get_connection(self):
+        while True:
+            try:
+                return psycopg2.connect(self.connection_string)
+            except psycopg2.OperationalError:
+                print(f"Could not find the database, retrying in {self.RETRY_TIME}s")
+                time.sleep(self.RETRY_TIME)
 
     def file_changed(self, path):
         print("")
