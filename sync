@@ -105,7 +105,7 @@ class Watcher:
         self.file_changed_responder = file_changed_responder
         self.fileHashes = {}
 
-    def hashFile(self, path):
+    def hash_file(self, path):
         with open(path, "r") as f:
             contents = f.read()
             return hashlib.md5(contents.encode("utf-8")).hexdigest()
@@ -120,7 +120,7 @@ class Watcher:
             else:
                 _, extname = os.path.splitext(new_path)
                 if extname in WATCHED_EXTS:
-                    hashed = self.hashFile(new_path)
+                    hashed = self.hash_file(new_path)
                     if new_path in self.fileHashes:
                       oldHash = self.fileHashes.get(new_path)
                       if oldHash != hashed:
