@@ -101,8 +101,8 @@ class FileUploader:
 
 
 class Watcher:
-    def __init__(self, fileChangedResponder):
-        self.fileChangedResponder = fileChangedResponder
+    def __init__(self, file_changed_responder):
+        self.file_changed_responder = file_changed_responder
         self.fileHashes = {}
 
     def hashFile(self, path):
@@ -124,7 +124,7 @@ class Watcher:
                     if newPath in self.fileHashes:
                       oldHash = self.fileHashes.get(newPath)
                       if oldHash != hashed:
-                          self.fileChangedResponder.fileChanged(newPath)
+                          self.file_changed_responder.fileChanged(newPath)
                     self.fileHashes[newPath] = hashed
 
 
