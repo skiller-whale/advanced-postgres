@@ -71,9 +71,9 @@ class PgExec:
                 print(f"Could not find the database, retrying in {self.RETRY_TIME}s")
                 time.sleep(self.RETRY_TIME)
 
-    def execute_query(self, query):
+    def execute_sql(self, sql):
         with self.connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
-            cursor.execute(query)
+            cursor.execute(sql)
             return cursor.fetchall()
 
     def file_changed(self, path):
@@ -84,7 +84,7 @@ class PgExec:
             contents = f.read()
 
         try:
-            query_results = self.execute_query(contents)
+            query_results = self.execute_sql(contents)
         except psycopg2.Error as err:
             self.connection.rollback()
             print("POSTGRES ERROR:", err)
