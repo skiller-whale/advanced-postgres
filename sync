@@ -14,6 +14,8 @@ from urllib.parse import urljoin
 WATCHED_EXTS = [".sh", ".sql"]
 IGNORE_DIRS = [".git"]
 
+SERVER_URL = os.getenv('SERVER_URL', "https://train.skillerwhale.com")
+
 
 def run_sync(attendance_id):
     file_uploader = FileUploader(attendance_id)
@@ -92,21 +94,21 @@ class PgExec:
                 print("")
 
 
+def create_skiller_whale_url(path):
+    return urljoin(SERVER_URL, path)
+
+
 class FileUploader:
     def __init__(self, attendance_id):
         self.attendance_id = attendance_id
 
     @property
-    def hostname(self):
-        return os.environ.get('SERVER_URL', "https://train.skillerwhale.com")
+    def uri(self):
+        return create_skiller_whale_url(self.path)
 
     @property
-    def updates_path(self):
+    def path(self):
         return f'attendances/{self.attendance_id}/file_snapshots'
-
-    @property
-    def updates_uri(self):
-        return urljoin(self.hostname, self.updates_path)
 
     @staticmethod
     def get_file_data(path):
@@ -124,7 +126,7 @@ class FileUploader:
     def post_file(self, path):
         data = self.get_file_data(path)
         headers = self.get_headers(data)
-        return requests.post(self.updates_uri, data=data, headers=headers)
+        return requests.post(self.uri, data=data, headers=headers)
 
     def file_changed(self, path):
         print(f"Uploading: {path}", end='\t')
@@ -137,6 +139,22 @@ class FileUploader:
 
         if response.text:
             print(response.text)
+
+
+class Pinger:
+    def __init__(self, attendance_id):
+        self.attendance_id = attendance_id
+
+    @property
+    def uri(self):
+        return create_skiller_whale_url(self.path)
+
+    @property
+    def path(self):
+        return f'attendances/{self.attendance_id}/pings'
+
+    def ping(self):
+        requests.post(self.uri)
 
 
 class Watcher:
