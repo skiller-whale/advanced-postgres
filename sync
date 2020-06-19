@@ -18,17 +18,13 @@ IGNORE_DIRS = [".git"]
 def run_sync(attendance_id):
     file_uploader = FileUploader(attendance_id)
     watcher = Watcher(file_uploader, base_path="src")
-    while True:
-        watcher.poll_for_changes()
-        time.sleep(1)
+    watcher.poll_for_changes()
 
 
 def pg_update():
     pg_executor = PgExec(os.environ.get("PSYCOPG_CONNECTION_STRING"))
     watcher = Watcher(pg_executor, base_path="src")
-    while True:
-        watcher.poll_for_changes()
-        time.sleep(1)
+    watcher.poll_for_changes()
 
 
 def skiller_whale_sync():
