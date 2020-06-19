@@ -19,8 +19,9 @@ SERVER_URL = os.getenv('SERVER_URL', "https://train.skillerwhale.com")
 
 def run_sync(attendance_id):
     file_uploader = FileUploader(attendance_id)
+    pinger = Pinger(attendance_id)
     watcher = Watcher(file_uploader, base_path="src")
-    watcher.poll_for_changes()
+    watcher.poll_for_changes(loop_callback=pinger.ping)
 
 
 def pg_update():
@@ -197,8 +198,10 @@ class Watcher:
             else:
                 self._respond_to_file_change(new_path)
 
-    def poll_for_changes(self, wait_time=1):
+    def poll_for_changes(self, wait_time=1, loop_callback=lambda: None):
+        """Optionally specify loop_callback, which is called each iteration"""
         while True:
+            loop_callback()
             self._check_dir_for_changes(self.base_path)
             self._first_pass = False
             time.sleep(wait_time)  # Poll for changes every `wait_time` seconds
