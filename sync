@@ -1,33 +1,43 @@
 #! /usr/bin/env python3
 
-import requests
-import threading
-import os
-import psycopg2
-import psycopg2.extras
-import json
 import hashlib
+import json
+import os
+import threading
 import time
 from urllib.parse import urljoin
+
+import requests
+import psycopg2
+from tabulate import tabulate
+
+import db_init
 
 
 WATCHED_EXTS = [".sh", ".sql"]
 IGNORE_DIRS = [".git"]
 
 SERVER_URL = os.getenv('SERVER_URL', "https://train.skillerwhale.com")
+USER_ID_FILEPATH = '/attendance_id'
 
 
-def run_sync(attendance_id):
-    file_uploader = FileUploader(attendance_id)
-    pinger = Pinger(attendance_id)
+def run_sync():
+    file_uploader = FileUploader()
+    pinger = Pinger()
     watcher = Watcher(file_uploader, base_path="src")
     watcher.poll_for_changes(loop_callback=pinger.ping)
 
 
 def pg_update():
-    pg_executor = PgExec(os.environ.get("PSYCOPG_CONNECTION_STRING"))
+    time.sleep(1)  # Give time for the database service to start
+    pg_executor = PgExec()
     watcher = Watcher(pg_executor, base_path="src")
     watcher.poll_for_changes()
+
+
+def read_attendance_id():
+    with open(USER_ID_FILEPATH) as id_file:
+        return id_file.read().strip()
 
 
 def skiller_whale_sync():
@@ -38,61 +48,62 @@ def skiller_whale_sync():
     print(" ____) |   <| | | |  __/ |       \\  /\\  /  | | | | (_| | |  __/")
     print("|_____/|_|\\_\\_|_|_|\\___|_|        \\/  \\/   |_| |_|\\__,_|_|\\___| ")
     print("")
-    attendance_id = os.environ.get("ATTENDANCE_ID")
     print("")
-    print(f'We\'re going to start watching this directory for changes so that the trainer can see your progress, using id {attendance_id}')
+    print(f'We\'re going to start watching this directory for changes so that the trainer can see your progress.')
+    print(f'Your attendance id is currently set to: {read_attendance_id()}')
+    print(f'If this is not correct, you can update it in the file {USER_ID_FILEPATH}\n')
 
-    sync_thread = threading.Thread(target=run_sync, args=[attendance_id])
+    sync_thread = threading.Thread(target=run_sync)
     sync_thread.start()
 
     pg_update()
 
 
 class PgExec:
-    RETRY_TIME = 2
+    def __init__(self):
+        print("Initialising databases")
+        db_init.init()
+        print("Initialisation complete")
 
-    def __init__(self, connection_string):
-        self.connection_string = connection_string
-        print(connection_string)
-        self._connection = None
-
-    @property
-    def connection(self):
-        if self._connection is None:
-            self._connection = self._get_connection()
-        return self._connection
-
-    def _get_connection(self):
-        while True:
-            try:
-                return psycopg2.connect(self.connection_string)
-            except psycopg2.OperationalError:
-                print(f"Could not find the database, retrying in {self.RETRY_TIME}s")
-                time.sleep(self.RETRY_TIME)
-
-    def execute_sql(self, sql):
-        with self.connection.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cursor:
+    def execute_sql(self, connection, sql):
+        with connection.cursor() as cursor:
             cursor.execute(sql)
-            return cursor.fetchall()
+
+            if not cursor.description:  # If no columns are returned
+                return [], []
+
+            column_names = [column.name for column in cursor.description]
+            return column_names, cursor.fetchall()
+
+    @staticmethod
+    def get_db_name_from_path(path):
+        """Returns the name of the deepest directory in path"""
+        dir_name, _ = os.path.split(path)
+        _, db_name = os.path.split(dir_name)
+        return db_name
 
     def file_changed(self, path):
-        print("")
-        print(f'RUNNING FILE {path}')
-        print("")
+        print(f'\nRUNNING FILE {path}')
         with open(path, "r") as f:
             contents = f.read()
 
+        # Will run a query against the database named according to the path
+        database_name = self.get_db_name_from_path(path)
+        print(f"Querying the database: {database_name}\n")
+
+        # Do not retry - an invalid db name would get stuck in an infinite loop
+        connection = db_init.get_connection(database_name, retry_time=None)
+        if not connection:
+            return  # Database error logging dealt with in get_connection
+
         try:
-            query_results = self.execute_sql(contents)
+            query_columns, query_rows = self.execute_sql(connection, contents)
         except psycopg2.Error as err:
-            self.connection.rollback()
+            connection.rollback()
             print("POSTGRES ERROR:", err)
         else:
-            for result in query_results:
-                print("--- ROW ---")
-                for key in result:
-                    print(str(key).upper() + ": " + str(result[key]))
-                print("")
+            print(tabulate(query_rows, headers=query_columns))
+        print()
 
 
 def create_skiller_whale_url(path):
@@ -100,21 +111,16 @@ def create_skiller_whale_url(path):
 
 
 class FileUploader:
-    def __init__(self, attendance_id):
-        self.attendance_id = attendance_id
+    def get_uri(self, attendance_id):
+        return create_skiller_whale_url(self.get_path(attendance_id))
 
-    @property
-    def uri(self):
-        return create_skiller_whale_url(self.path)
-
-    @property
-    def path(self):
-        return f'attendances/{self.attendance_id}/file_snapshots'
+    def get_path(self, attendance_id):
+        return f'attendances/{attendance_id}/file_snapshots'
 
     @staticmethod
     def get_file_data(path):
         with open(path, "r") as f:
-            data ={"relative_path": path, "contents": f.read()}
+            data = {"relative_path": path, "contents": f.read()}
             return json.dumps(data)
 
     @staticmethod
@@ -124,38 +130,43 @@ class FileUploader:
             "Content-Length": str(len(data))
         }
 
-    def post_file(self, path):
+    def post_file(self, path, attendance_id):
         data = self.get_file_data(path)
         headers = self.get_headers(data)
-        return requests.post(self.uri, data=data, headers=headers)
+        return requests.post(self.get_uri(attendance_id), data=data, headers=headers)
 
     def file_changed(self, path):
+        attendance_id = read_attendance_id()
         print(f"Uploading: {path}", end='\t')
-        if not self.attendance_id:
+        if not attendance_id:
             print("No attendance id set; file update not sent.")
             return
 
-        response = self.post_file(path)
-        print(f"Status: {response.status_code}")
-
-        if response.text:
-            print(response.text)
+        try:
+            response = self.post_file(path, attendance_id)
+        except requests.exceptions.ConnectionError:
+            print(f"Failed\nCould not reach {SERVER_URL}")
+        else:
+            print(f"Status: {response.status_code}")
+            if response.text:
+                print(response.text)
 
 
 class Pinger:
-    def __init__(self, attendance_id):
-        self.attendance_id = attendance_id
-
     @property
     def uri(self):
         return create_skiller_whale_url(self.path)
 
     @property
     def path(self):
-        return f'attendances/{self.attendance_id}/pings'
+        attendance_id = read_attendance_id()
+        return f'attendances/{attendance_id}/pings'
 
     def ping(self):
-        requests.post(self.uri)
+        try:
+            requests.post(self.uri)
+        except requests.exceptions.ConnectionError:
+            pass  # Tolerate failed pings
 
 
 class Watcher:
@@ -183,7 +194,10 @@ class Watcher:
         if not self._first_pass:
             old_hash = self._file_hashes.get(path)
             if old_hash != hashed:
-                self.responder.file_changed(path)
+                try:
+                    self.responder.file_changed(path)
+                except Exception as err:
+                    print("Unexpected error:", err)
         self._file_hashes[path] = hashed
 
     def _check_dir_for_changes(self, dir_path):
@@ -201,9 +215,18 @@ class Watcher:
     def poll_for_changes(self, wait_time=1, loop_callback=lambda: None):
         """Optionally specify loop_callback, which is called each iteration"""
         while True:
-            loop_callback()
-            self._check_dir_for_changes(self.base_path)
-            self._first_pass = False
+            try:
+                loop_callback()
+            except Exception as err:
+                print("Unexpected callback error:", err)
+
+            try:
+                self._check_dir_for_changes(self.base_path)
+            except Exception as err:
+                print("Unexpected error in file watcher:", err)
+            else:
+                self._first_pass = False
+
             time.sleep(wait_time)  # Poll for changes every `wait_time` seconds
 
 
