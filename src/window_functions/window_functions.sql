@@ -84,7 +84,7 @@
 |    Use a window function to write a query that will return:
 |    * Each student's name.
 |    * Their alphabetical position in the set of all students
-|       (Aaron would have the value 1, and Zylo would have the biggest number)
+|       (the alphabetically first name should have the value 1)
 |
 |    -----------------------------------------------------------------------
 |
