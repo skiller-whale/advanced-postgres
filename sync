@@ -103,6 +103,7 @@ class PgExec:
             print("POSTGRES ERROR:", err)
         else:
             print(tabulate(query_rows, headers=query_columns))
+            print(f'\nRow Count: {len(query_rows)}\n')
         print()
 
 
