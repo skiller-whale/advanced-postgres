@@ -60,6 +60,8 @@ def skiller_whale_sync():
 
 
 class PgExec:
+    DATABASE_NAME_FILE = '.db_name'
+
     def __init__(self):
         print("Initialising databases")
         db_init.init()
@@ -75,20 +77,32 @@ class PgExec:
             column_names = [column.name for column in cursor.description]
             return column_names, cursor.fetchall()
 
-    @staticmethod
-    def get_db_name_from_path(path):
-        """Returns the name of the deepest directory in path"""
+    @classmethod
+    def get_db_name_from_path(cls, path):
+        """Returns the content of a .db_name file in the directory"""
         dir_name, _ = os.path.split(path)
-        _, db_name = os.path.split(dir_name)
-        return db_name
+        db_file = os.path.join(dir_name, cls.DATABASE_NAME_FILE)
+
+        if os.path.exists(db_file):
+            with open(db_file) as file:
+                db_name = file.read().strip()
+                if db_name:
+                    return db_name
+
+        print(f"\nNo associated database found at {db_file}\n")
+        return None
+
 
     def file_changed(self, path):
+        # Will run a query against the database named according to the path
+        database_name = self.get_db_name_from_path(path)
+        if not database_name:
+            return
+
         print(f'\nRUNNING FILE {path}')
         with open(path, "r") as f:
             contents = f.read()
 
-        # Will run a query against the database named according to the path
-        database_name = self.get_db_name_from_path(path)
         print(f"Querying the database: {database_name}\n")
 
         # Do not retry - an invalid db name would get stuck in an infinite loop
