@@ -9,7 +9,8 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 # These names should match the folder names in src and db_init
 DATABASES = [
-    'student_scores'
+    'student_scores',
+    'employees'
 ]
 
 

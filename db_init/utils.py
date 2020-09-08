@@ -29,6 +29,8 @@ class TableDefinition:
             reader = csv.DictReader(csv_file)
             for row in reader:
                 keys, values = zip(*row.items())
+                values = [x if x != '' else None for x in values]
+
                 placeholders = sql.SQL(', ').join(sql.Placeholder() * len(keys))
                 columns = sql.SQL(', ').join(map(sql.Identifier, keys))
 
