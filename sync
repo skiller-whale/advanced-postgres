@@ -9,7 +9,7 @@ from urllib.parse import urljoin
 
 import requests
 import psycopg2
-from tabulate import tabulate
+import tabulate
 
 import db_init
 
@@ -19,6 +19,10 @@ IGNORE_DIRS = [".git"]
 
 SERVER_URL = os.getenv('SERVER_URL', "https://train.skillerwhale.com")
 USER_ID_FILEPATH = '/attendance_id'
+
+
+# This is useful for, e.g., displaying EXPLAIN output where indentation should be preserved.
+tabulate.PRESERVE_WHITESPACE = True
 
 
 def run_sync():
@@ -116,7 +120,7 @@ class PgExec:
             connection.rollback()
             print("POSTGRES ERROR:", err)
         else:
-            print(tabulate(query_rows, headers=query_columns))
+            print(tabulate.tabulate(query_rows, headers=query_columns))
             print(f'\nRow Count: {len(query_rows)}\n')
         print()
 
