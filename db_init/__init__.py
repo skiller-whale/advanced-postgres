@@ -10,7 +10,8 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 # These names should match the folder names in src and db_init
 DATABASES = [
     'student_scores',
-    'employees'
+    'employees',
+    'employees_roles_and_branches',
 ]
 
 
@@ -56,6 +57,11 @@ def build_and_seed_database(database):
     print(f"Seeding database: {database}")
     for table in module.TABLES:
         table.seed_table(connection)
+
+    if hasattr(module, "INDEXES"):
+        print(f"Creating indexes for: {database}")
+        for index in module.INDEXES:
+            index.create_index(connection)
 
 
 def init():

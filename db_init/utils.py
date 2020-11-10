@@ -45,3 +45,37 @@ class TableDefinition:
                     values
                 )
         connection.commit()
+
+
+class IndexDefinition:
+    def __init__(self, name, table, columns, predicate=None, index_type=None):
+        self.name = name
+        self.table = table
+        self.columns = columns
+        self.predicate = predicate
+        self.index_type = index_type
+
+    def create_index(self, connection):
+        query = sql.SQL("CREATE INDEX {name} ON {table}").format(
+            name=sql.Identifier(self.name),
+            table=sql.Identifier(self.table),
+        )
+        if self.index_type:
+            query = sql.SQL("{query} USING {index_type}").format(
+                query=query,
+                index_type=sql.SQL(self.index_type)
+            )
+        query = sql.SQL("{query} ({columns})").format(
+            query=query,
+            columns=sql.SQL(self.columns)
+        )
+        if self.predicate:
+            query = sql.SQL("{query} WHERE {predicate}").format(
+                query=query,
+                predicate=sql.SQL(self.predicate)
+            )
+        query = sql.SQL("{query};").format(query=query)
+
+        with connection.cursor() as cursor:
+            cursor.execute(query)
+        connection.commit()
