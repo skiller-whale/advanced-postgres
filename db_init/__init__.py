@@ -1,5 +1,6 @@
 import importlib
 import os
+import subprocess
 import time
 
 import psycopg2
@@ -15,14 +16,25 @@ DATABASES = [
 ]
 
 
+user = os.getenv('POSTGRES_USER')
+password = os.getenv('POSTGRES_PASSWORD')
+host = os.getenv('POSTGRES_HOST')
+
+
+def get_connection_string(database):
+    return f"user={user} password={password} dbname={database} host={host}"
+
+
 def get_connection(database=None, retry_time=None):
     while True:
         try:
-            return psycopg2.connect(
+            connection = psycopg2.connect(
                 database=database,
-                user=os.getenv('POSTGRES_USER'),
-                password=os.getenv('POSTGRES_PASSWORD'),
-                host=os.getenv('POSTGRES_HOST'))
+                user=user,
+                password=password,
+                host=host)
+            connection.autocommit = True
+            return connection
         except psycopg2.OperationalError:
             db_name = "postgres" if database is None else f'database: {database}'
             if retry_time is None:
@@ -64,9 +76,31 @@ def build_and_seed_database(database):
             index.create_index(connection)
 
 
+def pg_dump(database, timeout=5):
+    connection_str = get_connection_string(database)
+    process = subprocess.run(
+        ['pg_dump', connection_str, '-F', 't'],
+        capture_output=True,
+        check=True,
+        timeout=timeout,
+    )
+    return process.stdout
+
+
+def pg_restore(database, dump, timeout=5):
+    connection_str = get_connection_string(database)
+    process = subprocess.run(
+        ['pg_restore', '-d', connection_str, '-c'],
+        input=dump,
+        capture_output=True,
+        check=True,
+        timeout=timeout,
+    )
+    return process.stdout
+
+
 def init():
     connection = get_connection(retry_time=2)
-    connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
 
     # Only run initialization for databases that don't already exist.
     missing_databases = set(DATABASES) - get_existing_databases(connection)
