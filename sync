@@ -3,6 +3,7 @@
 import hashlib
 import json
 import os
+import re
 import threading
 import time
 from urllib.parse import urljoin
@@ -19,6 +20,8 @@ IGNORE_DIRS = [".git"]
 
 SERVER_URL = os.getenv('SERVER_URL', "https://train.skillerwhale.com")
 USER_ID_FILEPATH = '/attendance_id'
+
+OUTPUT_LOCK = threading.Lock()
 
 
 # This is useful for, e.g., displaying EXPLAIN output where indentation should be preserved.
@@ -65,6 +68,14 @@ def skiller_whale_sync():
 
 class PgExec:
     DATABASE_NAME_FILE = '.db_name'
+    # Matches any integer, surrounded by '.' just before the file extension
+    # (e.g. the 11 in my_file.11.sql) using lookbehind and lookahead groups
+    # Note: Because of the $ at the end, this can match at most one group.
+    FILE_NUMBER_REGEX = re.compile(r'(?<=\.)\d+(?=\.[^\.]+$)')
+
+    # This is an extra safety measure to ensure that db dumps, and restores
+    # never clash with each other, or with user queries.
+    DATABASE_LOCK = threading.Lock()
 
     def __init__(self):
         print("Initialising databases")
@@ -96,18 +107,18 @@ class PgExec:
         print(f"\nNo associated database found at {db_file}\n")
         return None
 
+    def run_query(self, path, database_name, identifier=None):
+        # Only display an identifier if one has been passed into the functino
+        identifier_str = f"<{identifier}> | " if identifier else ""
 
-    def file_changed(self, path):
-        # Will run a query against the database named according to the path
-        database_name = self.get_db_name_from_path(path)
-        if not database_name:
-            return
+        with OUTPUT_LOCK:
+            print(f'{identifier_str}Running File {path}')
 
-        print(f'\nRUNNING FILE {path}')
         with open(path, "r") as f:
             contents = f.read()
 
-        print(f"Querying the database: {database_name}\n")
+        with OUTPUT_LOCK:
+            print(f"{identifier_str}Querying the database: {database_name}")
 
         # Do not retry - an invalid db name would get stuck in an infinite loop
         connection = db_init.get_connection(database_name, retry_time=None)
@@ -118,11 +129,95 @@ class PgExec:
             query_columns, query_rows = self.execute_sql(connection, contents)
         except psycopg2.Error as err:
             connection.rollback()
-            print("POSTGRES ERROR:", err)
+            with OUTPUT_LOCK:
+                print(f'{identifier_str}POSTGRES ERROR:', err)
+                print()
         else:
-            print(tabulate.tabulate(query_rows, headers=query_columns))
-            print(f'\nRow Count: {len(query_rows)}\n')
-        print()
+            with OUTPUT_LOCK:
+                if identifier:
+                    print(f'{identifier_str}Query Complete. Results:')
+                print(tabulate.tabulate(query_rows,
+                                        headers=query_columns,
+                                        tablefmt="psql"))
+                print(f'Row Count: {len(query_rows)}')
+                print()
+
+    @classmethod
+    def _get_related_file_regex(cls, path):
+        """Returns a regex for matching 'peer' files of path
+
+        If path were file_name.1.sql, then this regex would match any file with
+        the structure file_name.X.sql where X is any integer.
+
+        If FILE_NUMBER_REGEX is not matched, then return None
+        """
+        if not cls.FILE_NUMBER_REGEX.search(path):
+            return None
+
+        file_components = map(re.escape, cls.FILE_NUMBER_REGEX.split(path))
+        return re.compile(r'(\d+)'.join(file_components))
+
+    @classmethod
+    def _get_files_and_identifiers_to_run(cls, path):
+        """Identifies which other files should be run, when path is edited"""
+        related_regex = cls._get_related_file_regex(path)
+        if not related_regex:
+            return { path: None }
+
+        dir_name, _ = os.path.split(path)
+        matches = [
+            related_regex.fullmatch(os.path.join(dir_name, file))
+            for file in os.listdir(dir_name)
+            if os.path.isfile(os.path.join(dir_name, file))  # Not directories
+        ]
+        # Return dictionary of { full_path : number_identifier }
+        return { match.group(0): match.group(1) for match in matches if match}
+
+    def run_threaded_queries(self, path, database_name):
+        paths_to_run = self._get_files_and_identifiers_to_run(path)
+        # Create one thread per related path to run.
+        threads = [
+            threading.Thread(
+                target=self.run_query,
+                args=(path, database_name, identifier)
+            )
+            for path, identifier in paths_to_run.items()
+        ]
+        for thread in threads:
+            thread.start()
+        # Ensure that all threads have completed before allowing the
+        # main thread to start executing any new queries.
+        for thread in threads:
+            thread.join()
+
+    def file_changed(self, path):
+        # Will run a query against the database named according to the path
+        database_name = self.get_db_name_from_path(path)
+        if not database_name:
+            return
+
+        # Backup the state of the database before any queries have run, so it
+        # can be restored afterwards.
+        with self.DATABASE_LOCK:
+            backup = db_init.pg_dump(database_name)
+
+        try:
+            with self.DATABASE_LOCK:
+                self.run_threaded_queries(path, database_name)
+        except Exception as err:
+            with OUTPUT_LOCK:
+                print("Unexpected error running query:", err)
+        finally:
+            with OUTPUT_LOCK:
+                print(f"Rolling back changes to {database_name}...")
+
+            # Restore the backup, to reset the database
+            with self.DATABASE_LOCK:
+                db_init.pg_restore(database_name, backup)
+
+            with OUTPUT_LOCK:
+                print("Done")
+                print()
 
 
 def create_skiller_whale_url(path):
@@ -156,19 +251,24 @@ class FileUploader:
 
     def file_changed(self, path):
         attendance_id = read_attendance_id()
-        print(f"Uploading: {path}", end='\t')
+        with OUTPUT_LOCK:
+            print(f"Uploading: {path}", end='\t')
         if not attendance_id:
-            print("No attendance id set; file update not sent.")
+            with OUTPUT_LOCK:
+                print("No attendance id set; file update not sent.")
             return
 
         try:
             response = self.post_file(path, attendance_id)
         except requests.exceptions.ConnectionError:
-            print(f"Failed\nCould not reach {SERVER_URL}")
+            with OUTPUT_LOCK:
+                print(f"Failed\nCould not reach {SERVER_URL}")
         else:
-            print(f"Status: {response.status_code}")
+            with OUTPUT_LOCK:
+                print(f"Status: {response.status_code}")
             if response.text:
-                print(response.text)
+                with OUTPUT_LOCK:
+                    print(response.text)
 
 
 class Pinger:
@@ -216,7 +316,8 @@ class Watcher:
                 try:
                     self.responder.file_changed(path)
                 except Exception as err:
-                    print("Unexpected error:", err)
+                    with OUTPUT_LOCK:
+                        print("Unexpected error:", err)
         self._file_hashes[path] = hashed
 
     def _check_dir_for_changes(self, dir_path):
@@ -237,12 +338,14 @@ class Watcher:
             try:
                 loop_callback()
             except Exception as err:
-                print("Unexpected callback error:", err)
+                with OUTPUT_LOCK:
+                    print("Unexpected callback error:", err)
 
             try:
                 self._check_dir_for_changes(self.base_path)
             except Exception as err:
-                print("Unexpected error in file watcher:", err)
+                with OUTPUT_LOCK:
+                    print("Unexpected error in file watcher:", err)
             else:
                 self._first_pass = False
 
