@@ -5,22 +5,25 @@
 |
 |    The SQL below carries out some business logic to increase the salary of
 |    everyone working for manager 6 by 1000, and takes this money off 6's
-|    salary. The total spend on salary should not change.
+|    salary. This should be performed at a specific instance in time - so anyone
+|    who is added to the team after that moment will not recieve the increase.
+|    The important part of this exercise is avoiding a race condition to ensure
+|    that the company's total salary spend does not change.
 |
 |    This happens in two separate statments, but you don't need to worry about
 |    how each of these works. They will run concurrently with statements in the
 |    other scripts that can cause issues with data correctness.
 |
 |    * Don't change, move or delete any lines of SQL in this or the other files!
-|      You will only be adding locks for this exercise.
+|      You will only be adding lock and unlock statements for this exercise.
 |
 |    * Uncomment the first pg_sleep() statement below to run all four of these
 |      files. You should see that there is a bug: the total salary at the
 |      end of the operation is different to the total salary beforehand.
 |
-|    * Without modifying any existing code, add exclusive advisory locks to the
-|      relevant files so this bug is avoided, and the final total salary is the
-|      same as the initial total.
+|    * Without modifying any existing code, add exclusive advisory locks (and
+|      unlocks) to the relevant files so this bug is avoided, and the final total
+|      salary is the same as the initial total.
 |
 |    * Use shared locks where appropriate so that the duration of the queries
 |      is less than 4 seconds.
