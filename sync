@@ -83,14 +83,18 @@ class PgExec:
         print("Initialisation complete")
 
     def execute_sql(self, connection, sql):
-        with connection.cursor() as cursor:
-            cursor.execute(sql)
+        # The first execute statement within this context block starts a new
+        # transaction. On exiting the context block, all changes are committed,
+        # unless there is a postgres error, in which case they are rolled back.
+        with connection:
+            with connection.cursor() as cursor:
+                cursor.execute(sql)
 
-            if not cursor.description:  # If no columns are returned
-                return [], []
+                if not cursor.description:  # If no columns are returned
+                    return [], []
 
-            column_names = [column.name for column in cursor.description]
-            return column_names, cursor.fetchall()
+                column_names = [column.name for column in cursor.description]
+                return column_names, cursor.fetchall()
 
     @classmethod
     def get_db_name_from_path(cls, path):
@@ -196,11 +200,6 @@ class PgExec:
         if not database_name:
             return
 
-        # Backup the state of the database before any queries have run, so it
-        # can be restored afterwards.
-        with self.DATABASE_LOCK:
-            backup = db_init.pg_dump(database_name)
-
         try:
             with self.DATABASE_LOCK:
                 self.run_threaded_queries(path, database_name)
@@ -209,11 +208,11 @@ class PgExec:
                 print("Unexpected error running query:", err)
         finally:
             with OUTPUT_LOCK:
-                print(f"Rolling back changes to {database_name}...")
+                print(f"Resetting database: {database_name}...")
 
-            # Restore the backup, to reset the database
+            # Reset the database to its original state
             with self.DATABASE_LOCK:
-                db_init.pg_restore(database_name, backup)
+                db_init.rebuild_database(database_name)
 
             with OUTPUT_LOCK:
                 print("Done")

@@ -1,6 +1,5 @@
 import importlib
 import os
-import subprocess
 import time
 
 import psycopg2
@@ -33,7 +32,6 @@ def get_connection(database=None, retry_time=None):
                 user=user,
                 password=password,
                 host=host)
-            connection.autocommit = True
             return connection
         except psycopg2.OperationalError:
             db_name = "postgres" if database is None else f'database: {database}'
@@ -50,60 +48,57 @@ def get_existing_databases(connection):
         return {result[0] for result in cursor.fetchall()}
 
 
-def create_database(connection, database):
+def create_database(connection, database, print_logs=False):
     with connection.cursor() as cursor:
-        print(f"Creating database {database}")
+        if print_logs:
+            print(f"Creating database {database}")
         command = sql.SQL('CREATE DATABASE {}').format(sql.Identifier(database))
         cursor.execute(command)
 
 
-def build_and_seed_database(database):
+def build_and_seed_database(database, print_logs=False):
     connection = get_connection(database, retry_time=2)
     # Import the module at db_init/<database> and use its TABLE definitions
     module = importlib.import_module(f'.{database}', 'db_init')
 
-    print(f"Building database: {database}")
+    if print_logs:
+        print(f"Building database: {database}")
     for table in module.TABLES:
         table.create_table(connection)
 
-    print(f"Seeding database: {database}")
+    if print_logs:
+        print(f"Seeding database: {database}")
     for table in module.TABLES:
         table.seed_table(connection)
 
     if hasattr(module, "INDEXES"):
-        print(f"Creating indexes for: {database}")
+        if print_logs:
+            print(f"Creating indexes for: {database}")
         for index in module.INDEXES:
             index.create_index(connection)
 
 
-def pg_dump(database, timeout=5):
-    connection_str = get_connection_string(database)
-    process = subprocess.run(
-        ['pg_dump', connection_str, '-F', 't'],
-        capture_output=True,
-        check=True,
-        timeout=timeout,
-    )
-    return process.stdout
+def drop_database(connection, database):
+    with connection:
+        with connection.cursor() as cursor:
+            cursor.execute(sql.SQL('DROP DATABASE IF EXISTS {name};').format(
+                name=sql.Identifier(database)
+            ))
 
 
-def pg_restore(database, dump, timeout=5):
-    connection_str = get_connection_string(database)
-    process = subprocess.run(
-        ['pg_restore', '-d', connection_str, '-c'],
-        input=dump,
-        capture_output=True,
-        check=True,
-        timeout=timeout,
-    )
-    return process.stdout
+def rebuild_database(database, print_logs=False):
+    connection = get_connection(retry_time=2)
+    connection.autocommit = True
+    drop_database(connection, database)
+    create_database(connection, database, print_logs=print_logs)
+    build_and_seed_database(database, print_logs=print_logs)
 
 
 def init():
     connection = get_connection(retry_time=2)
+    connection.autocommit = True
 
     # Only run initialization for databases that don't already exist.
     missing_databases = set(DATABASES) - get_existing_databases(connection)
     for database in missing_databases:
-        create_database(connection, database)
-        build_and_seed_database(database)
+        rebuild_database(database, print_logs=True)
