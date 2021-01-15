@@ -12,10 +12,10 @@ THIS_DIR = os.path.dirname(__file__)
 TABLES = [
     TableDefinition(
         "employees",
-        "(id INTEGER PRIMARY KEY, name VARCHAR(255), manager_id INTEGER, salary INTEGER)",
+        "(id SERIAL PRIMARY KEY, name VARCHAR(255), manager_id INTEGER REFERENCES employees(id), salary INTEGER)",
         os.path.join(THIS_DIR, "employees.csv")),
     TableDefinition(
         "projects",
-        "(id INTEGER PRIMARY KEY, owner_id INTEGER, budget INTEGER, parent_project_id INTEGER)",
+        "(id SERIAL PRIMARY KEY, owner_id INTEGER REFERENCES employees(id), budget INTEGER, parent_project_id INTEGER REFERENCES projects(id))",
         os.path.join(THIS_DIR, "projects.csv")),
 ]
