@@ -1,0 +1,2 @@
+-- SELECT * FROM employees LIMIT 10;
+-- SELECT * FROM projects LIMIT 10;
