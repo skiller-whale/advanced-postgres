@@ -20,8 +20,8 @@ services:
     links:
       - db
     volumes:
-      - ./attendance_id:/attendance_id
-      - ./db_init:/db_init
-      - ./src:/src
+      - ./attendance_id:/app/attendance_id
+      - ./lib:/app/lib
+      - ./src:/app/src
     stdin_open: true
     tty: true
