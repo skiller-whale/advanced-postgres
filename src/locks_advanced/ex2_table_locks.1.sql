@@ -4,7 +4,7 @@
 |    operations on the employees table:
 |
 |    1. Selecting values from a row
-|    2. Inserting a new row
+|    2. Updating a new row
 |    3. Adding a new index
 |    4. Dropping the table
 |
@@ -24,9 +24,9 @@ SELECT clock_timestamp() AS t INTO start_time;
 SELECT * FROM employees WHERE id = 1;
 SELECT clock_timestamp() AS t INTO select_time;
 
--- Insert a row into employees
+-- Update a row in employees
 UPDATE employees SET name = 'Johannes Kelpler' WHERE id = 4;
-SELECT clock_timestamp() AS t INTO insert_time;
+SELECT clock_timestamp() AS t INTO update_time;
 
 -- Create a new index on employees
 CREATE INDEX ON employees ((lower(name)));
@@ -38,6 +38,6 @@ SELECT clock_timestamp() AS t INTO drop_time;
 
 
 SELECT (SELECT select_time.t - start_time.t AS select_time FROM start_time, select_time),
-       (SELECT insert_time.t - start_time.t AS update_time FROM start_time, insert_time),
+       (SELECT update_time.t - start_time.t AS update_time FROM start_time, update_time),
        (SELECT index_time.t - start_time.t AS index_time FROM start_time, index_time),
        (SELECT drop_time.t - start_time.t AS drop_time FROM start_time, drop_time);
