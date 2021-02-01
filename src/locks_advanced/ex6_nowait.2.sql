@@ -10,10 +10,15 @@
 |      transactions will succeed because of a deadlock, but it is not always
 |      the same one.
 |
-|    * Add a NOWAIT statement to one of these files, so that the migration in
-|      this file always completes successfully, and takes < 3s whichever
-|      transaction starts executing first. Save the file and check this
-|      works.
+|    * Add a statement that acquires a lock with NOWAIT, so that the migration in
+|      this file will always complete successfully, and consistently takes around 2
+|      seconds. 
+|
+|      You will need to think about which file the `NOWAIT` statement must be 
+|      added to, as well as where in the file it belongs.
+|
+|      Save the file and check this works.
+|
 |
 |    * Add a NOWAIT statement in the same position in the migration you didn't
 |      just change. After this neither transaction should wait for a lock.
@@ -24,7 +29,6 @@
 */ -----------------------------------------------------------------------------
 
 SELECT clock_timestamp() AS t INTO start_time_2;
-
 
 UPDATE employees SET name = 'UNKNOWN' WHERE name IS NULL;
 SELECT pg_sleep(2);

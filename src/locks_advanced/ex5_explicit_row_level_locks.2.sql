@@ -10,7 +10,7 @@
 |      the two transactions will fail because of a deadlock. Think about why
 |      this has happened.
 |
-|    * Add an explicit row lock to this transactions to prevent the deadlock
+|    * Add an explicit row lock to this transaction to prevent the deadlock
 |      from occurring. Do not change any of the existing code.
 |
 |    * Try this with each of the 4 kinds of row-level locks, one at a time.
