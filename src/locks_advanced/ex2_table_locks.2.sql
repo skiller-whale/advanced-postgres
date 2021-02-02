@@ -13,7 +13,8 @@
 |      transaction (but not the UPDATE).
 |
 |    * On the line below that, add another SQL statement that will also block
-|      the update in the other transaction.
+|      the update in the other transaction. Think about which table lock modes
+|      would block the update, and choose a statement based on this.
 |
 */ -----------------------------------------------------------------------------
 
