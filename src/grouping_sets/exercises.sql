@@ -83,7 +83,7 @@
 
 /* -----------------------------------------------------------------------------
 |
-|  5. Joining tables for grouping sets
+|  5. Larger GROUPING SETS with joins
 |
 |  * Read the query below, uncomment it, and look at the output.
 |
