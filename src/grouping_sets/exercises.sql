@@ -19,7 +19,6 @@
 
 -- SELECT
 --   genre,
---   NULL AS n_tracks,
 --   COUNT(id),
 --   AVG(minutes) AS avg_minutes
 -- FROM albums
