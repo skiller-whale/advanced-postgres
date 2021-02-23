@@ -7,10 +7,11 @@
 |    * Use a UNION ALL to add the results from another SELECT ... GROUP BY
 |      statement that returns the number of albums, and average minutes
 |      grouped by n_tracks.
-|      This SELECT must return the same set of columns for UNION to work.
+|      (This SELECT must return the same set of columns for UNION to work)
 |
-|    * Use UNION ALL to add a third statement that returns the count and
+|    * Use UNION ALL to include a third SELECT that returns the count and
 |       average minutes across all albums in the table.
+|      the table.
 |
 */ -----------------------------------------------------------------------------
 
@@ -18,7 +19,6 @@
 
 -- SELECT
 --   genre,
---   NULL AS n_tracks,
 --   COUNT(id),
 --   AVG(minutes) AS avg_minutes
 -- FROM albums
@@ -83,7 +83,7 @@
 
 /* -----------------------------------------------------------------------------
 |
-|  5. Joining tables for grouping sets
+|  5. Larger GROUPING SETS with joins
 |
 |  * Read the query below, uncomment it, and look at the output.
 |
