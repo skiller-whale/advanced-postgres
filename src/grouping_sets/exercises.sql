@@ -6,12 +6,8 @@
 |
 |    * Use a UNION ALL to add the results from another SELECT ... GROUP BY
 |      statement that returns the number of albums, and average minutes
-|      grouped by n_tracks.
-|      (This SELECT must return the same set of columns for UNION to work)
-|
-|    * Use UNION ALL to include a third SELECT that returns the count and
-|       average minutes across all albums in the table.
-|      the table.
+|      grouped by n_tracks. Include n_tracks as a fourth column in the SELECT.
+|      (The two SELECTs must return the same set of columns for UNION to work)
 |
 */ -----------------------------------------------------------------------------
 
@@ -30,12 +26,10 @@
 |
 |  2. Using GROUPING SETS to include several groupings in a result set
 |
-|  * Write a query that uses GROUPING SETS to include the same groupings as the
-|    first two selects in the previous task, i.e. grouping by genre and by
-|    n_tracks but without the overall totals.
+|  * Write a query that uses GROUPING SETS to include the same groupings as in
+|    the previous exercise.
 |
-|  * Check that the results look the same as for the UNION version of the query
-|    (except without the row including aggregates across all rows).
+|  * Check that the results look the same as for the UNION version of the query.
 |
 */ -----------------------------------------------------------------------------
 
