@@ -93,14 +93,9 @@
 |        2. record_label and genre
 |        3. the empty set
 |
-|  * Reorder the results so that it is easy to answer the following questions:
-|    (use different orders for each as you see fit)
-|
-|        1. What is the most profitable genre for Island? Who produced albums of
-|           this genre for Island (you can work this out from the query without
-|           adding another grouping)?
-|        2. Has Salmon and Garfunkel, or sole music sold more albums for Atlantic?
-|        3. Has sole music has been more profitable for Island or Atlantic?
+|  * Use the results to answer the questions in the Skiller Whale app. You might
+|    find it useful to reorder the result to find the answers, although this is
+|    up to you.
 |
 */ -----------------------------------------------------------------------------
 
