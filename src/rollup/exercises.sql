@@ -86,12 +86,22 @@
 |        3. title IS NULL
 |        4. SUM(sales.amount) DESC NULLS LAST
 |
-|    * Try swapping genre and record_label in the ORDER BY and SELECT. Do you
-|      think the output still makes sense as a hierarchical report?
+|    * Try changing the order of the ORDER BY clauses to:
+|        1. record_label
+|        2. genre
+|        3. title IS NULL
+|        4. SUM(sales.amount) DESC NULLS LAST
 |
-|    * Now try swapping record_label and title in the ORDER BY and SELECT. Do
-|      you think this output makes sense as a hierarchical report? Why or why
-|      not?
+|      Do you think the output still makes sense as a hierarchical report?
+|
+|    * Now try changing the order of the ORDER BY clauses to:
+|        1. record_label
+|        3. title IS NULL
+|        2. genre
+|        4. SUM(sales.amount) DESC NULLS LAST
+|
+|      Do you think this output makes sense as a hierarchical report?  Why or
+|      why not?
 |
 */ -----------------------------------------------------------------------------
 
