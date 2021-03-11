@@ -96,8 +96,8 @@
 |
 |    * Now try changing the order of the ORDER BY clauses to:
 |        1. record_label
-|        3. title IS NULL
-|        2. genre
+|        2. title IS NULL
+|        3. genre
 |        4. SUM(sales.amount) DESC NULLS LAST
 |
 |      Do you think this output makes sense as a hierarchical report?  Why or
