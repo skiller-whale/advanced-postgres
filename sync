@@ -18,6 +18,7 @@ DATABASE_NAMES = [
     'student_scores',
     'employees',
     'employees_roles_and_branches',
+    'customer_profiles',
 ]
 
 
