@@ -26,24 +26,25 @@ class TableDefinition:
         with connection.cursor() as cursor, \
              open(self.data_csv) as csv_file:
 
-            reader = csv.DictReader(csv_file)
-            for row in reader:
-                keys, values = zip(*row.items())
-                values = [x if x != '' else None for x in values]
+            # Read the first row of the csv file with the csv reader module to
+            # get the headers. This advances the file pointer to first data row
+            reader = csv.reader(csv_file)
+            headers = next(reader)
 
-                placeholders = sql.SQL(', ').join(sql.Placeholder() * len(keys))
-                columns = sql.SQL(', ').join(map(sql.Identifier, keys))
-
-                cursor.execute(
-                    sql.SQL(
-                      "INSERT INTO {table} ({columns}) VALUES({placeholders});"
-                    ).format(
-                        table=sql.Identifier(self.name),
-                        columns=columns,
-                        placeholders=placeholders,
-                    ),
-                    values
-                )
+            # Use the SQL COPY function to read CSV in from the file stream.
+            # This will start at the second line of the file, and use the
+            # Postgres CSV mode to deal with the format (e.g. quoted commas).
+            cursor.copy_expert(
+                sql.SQL("""
+                    COPY {table} ({columns})
+                    FROM STDIN
+                    WITH (FORMAT CSV);
+                """).format(
+                    table=sql.Identifier(self.name),
+                    columns=sql.SQL(', ').join(map(sql.Identifier, headers)),
+                ),
+                csv_file
+            )
         connection.commit()
 
 
