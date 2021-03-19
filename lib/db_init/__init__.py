@@ -79,11 +79,14 @@ def drop_database(connection, database):
 
 
 def rebuild_database(database, print_logs=False):
+    start_time = time.time()
     connection = get_connection(retry_time=2)
     connection.autocommit = True
     drop_database(connection, database)
     create_database(connection, database, print_logs=print_logs)
     build_and_seed_database(database, print_logs=print_logs)
+    if print_logs:
+        print(f"\tDatabase built in {time.time() - start_time:.2f}s")
 
 
 def init(database_names):
