@@ -35,6 +35,8 @@
 |      GROUPING SETS. Your results should include the same rows as before (but
 |      perhaps in a different order).
 |
+|    * Add nationality to the SELECT list to include it in the output.
+|
 |    * Add gender to the CUBE clause to include all combinations across four
 |      fields: nationality, membership_status, gender and age_range.
 |
