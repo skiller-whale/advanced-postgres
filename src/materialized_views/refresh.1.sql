@@ -7,9 +7,10 @@
 |  both are executed and you will see their output. Start with the instructions
 |  in this file first.
 |
-|  This file contains a SELECT statement that uses the materialized view created
-|  in refresh.2.sql. The sleep command is to make sure that view has been
-|  created before the SELECT is run.
+|  This file contains a SELECT statement that uses a materialized view created
+|  in refresh.2.sql (called top_three_companies).
+|  The sleep command is included to make sure that view has been created before
+|  the SELECT is run.
 |
 |  The query output also includes a column that displays how long this script
 |  took to complete. Don't worry if you don't understand how this works.
