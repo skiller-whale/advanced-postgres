@@ -111,9 +111,9 @@ GROUP BY employees.id, roles.name, countries.name, companies.name;
 
 -- CREATE MATERIALIZED VIEW company_country_distribution AS
 --   SELECT
---     DISTINCT(companies.name),
+--     companies.name,
 --     companies.id AS company_id,
---     COUNT(countries.name) AS country_count
+--     COUNT(DISTINCT(countries.name)) AS country_count
 --   FROM companies
 --   JOIN branches ON branches.company_id=companies.id
 --   JOIN countries ON countries.id = branches.country_id
