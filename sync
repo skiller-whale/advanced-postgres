@@ -17,6 +17,7 @@ DATABASE_NAMES = [
     'album_sales',
     'student_scores',
     'employees',
+    'projects',
     'employees_roles_and_branches',
     'customer_profiles',
 ]
