@@ -80,9 +80,12 @@ class PgExec:
             query_columns, query_rows = self.execute_sql(connection, contents)
         except psycopg2.Error as err:
             connection.rollback()
+            if repr(err) == 'ProgrammingError("can\'t execute an empty query")':
+                message = "No query in file"
+            else:
+                message = f"POSTGRES ERROR: {err}"
             with self.output_lock:
-                print(f'{identifier_str}POSTGRES ERROR:', err)
-                print()
+                print(f'{identifier_str}{message}')
         else:
             with self.output_lock:
                 if identifier:
