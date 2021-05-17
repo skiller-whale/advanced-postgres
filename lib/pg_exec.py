@@ -58,7 +58,7 @@ class PgExec:
         print(f"\nNo associated database found at {db_file}\n")
         return None
 
-    def run_query(self, path, database_name, identifier=None):
+    def run_query(self, path, database_name, identifier=None, modify_connection=None):
         # Only display an identifier if one has been passed into the functino
         identifier_str = f"<{identifier}> | " if identifier else ""
 
@@ -75,6 +75,9 @@ class PgExec:
         connection = db_init.get_connection(database_name, retry_time=None)
         if not connection:
             return  # Database error logging dealt with in get_connection
+
+        if modify_connection:
+            modify_connection(connection)
 
         try:
             query_columns, query_rows = self.execute_sql(connection, contents)
@@ -127,6 +130,24 @@ class PgExec:
         # Return dictionary of { full_path : number_identifier }
         return { match.group(0): match.group(1) for match in matches if match}
 
+    @classmethod
+    def _get_pre_file(cls, path):
+        dirname, filename = os.path.split(path)
+
+        if cls.FILE_NUMBER_REGEX.search(filename):
+            # E.g. remove the .1 from my_file.1.sql to give my_file.sql
+            start, end = cls.FILE_NUMBER_REGEX.split(filename)
+            filename = start[:-1] + end
+
+        pre_filename = '.pre.' + filename
+
+        pre_path = os.path.join(dirname, pre_filename)
+
+        if os.path.isfile(pre_path):
+            return pre_path
+
+        return None
+
     def run_threaded_queries(self, path, database_name):
         paths_to_run = self._get_files_and_identifiers_to_run(path)
         # Create one thread per related path to run.
@@ -144,6 +165,16 @@ class PgExec:
         for thread in threads:
             thread.join()
 
+    def prepare_database(self, path, database_name):
+        # run pre file
+        pre_file = self._get_pre_file(path)
+        if pre_file:
+            with self.output_lock:
+                print(f"Running pre file: {pre_file}")
+
+            enable_autocommit = lambda connection: connection.set_session(autocommit=True)
+            self.run_query(pre_file, database_name, modify_connection=enable_autocommit)
+
     def file_changed(self, path):
         # Will run a query against the database named according to the path
         database_name = self.get_db_name_from_path(path)
@@ -152,6 +183,7 @@ class PgExec:
 
         try:
             with self.DATABASE_LOCK:
+                self.prepare_database(path, database_name)
                 self.run_threaded_queries(path, database_name)
         except Exception as err:
             with self.output_lock:
@@ -167,4 +199,3 @@ class PgExec:
             with self.output_lock:
                 print("Done")
                 print()
-
