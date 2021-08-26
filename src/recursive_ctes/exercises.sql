@@ -113,7 +113,8 @@
 |    The set of employees who ARE the owner of a project can be found by
 |    querying
 |
-|    SELECT employees
+|    SELECT employees.*
+|    FROM employees
 |    JOIN projects
 |    ON employees.id = projects.owner_id
 |
@@ -191,18 +192,15 @@ salary_budget (including their own salary) that they are responsible for.
 
 Create a recursive CTE called `subprojects` that is similar to the
 `reports` CTE above. Instead of `id`, `manager_id` and `salary`, this will
-need to use the columns `id`, `base_project_id` and `budget`. This CTE will
+need to use the columns `id`, `base_owner_id` and `budget`. This CTE will
 contain one row for each 'subproject - project' relationship (so that
-GROUP BY base_project_id, SUM(budget) will give the total budget for each
-base_project_id).
-
-You'll also want to include the `owner_id` of the parent_project on each row
-so you can work out who has responsibility for the project's budget.
+GROUP BY base_owner_id, SUM(budget) will give the total budget for projects
+managed by each owner).
 
 The results of this CTE should contain 54 rows, with the columns
 
-   id    budget    base_project_owner_id    base_project_id
-  ----  --------  -----------------------  ----------------- */
+   id    budget    base_project_owner_id
+  ----  --------  ----------------------- */
 
 
 
@@ -213,7 +211,7 @@ Add a second (non-recursive) CTE to the query from STEP 2. called
 and calculate the total project budget that each employee is responsible for
 (by grouping on `base_project_owner_id`)
 
-This CTE should contain 25 rows, with the columns
+This CTE should contain 22 rows, with the columns
 
   base_project_owner_id    total_budget
  -----------------------  -------------- */
