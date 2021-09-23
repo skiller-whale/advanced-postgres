@@ -25,7 +25,7 @@
 |      unlocks) to the relevant files so this bug is avoided, and the final total
 |      salary is the same as the initial total.
 |
-|    * Use shared locks where appropriate so that the duration of the queries
+|    * Use shared locks where appropriate so that the duration of this query
 |      is less than 4 seconds.
 |
 */ -----------------------------------------------------------------------------
