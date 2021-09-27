@@ -24,6 +24,6 @@ TABLES = [
         os.path.join(THIS_DIR, "work_items.csv")),
     TableDefinition(
         "documents",
-        "(id SERIAL PRIMARY KEY, project_reference VARCHAR(255), identifier VARCHAR(255), version INTEGER, created_on TIMESTAMP, category_id INTEGER REFERENCES categories(id), active BOOLEAN)",
+        "(id SERIAL PRIMARY KEY, project_reference VARCHAR(255), identifier VARCHAR(255), version INTEGER, created_on TIMESTAMP, category_id INTEGER REFERENCES categories(id), active BOOLEAN, uuid VARCHAR(255))",
         os.path.join(THIS_DIR, "documents.csv")),
 ]
