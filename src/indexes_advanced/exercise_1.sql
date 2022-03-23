@@ -42,7 +42,7 @@ EXPLAIN ANALYZE
     OR
     items.parent_work_item_id BETWEEN 5000 AND 5500
   )
-  AND
+  OR
   (
     created_on BETWEEN '2019-02-21' AND '2019-06-30'
     AND

@@ -1,0 +1,1 @@
+VACUUM work_items;
