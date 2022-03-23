@@ -4,7 +4,7 @@
 |    operations on the employees table:
 |
 |    1. Selecting values from a row
-|    2. Updating a new row
+|    2. Updating a row
 |    3. Adding a new index
 |    4. Dropping the table
 |
