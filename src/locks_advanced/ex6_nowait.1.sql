@@ -9,10 +9,13 @@
 
 SELECT clock_timestamp() AS t INTO start_time_1;
 
+BEGIN;
 
 UPDATE employees SET salary = 20000 WHERE salary IS NULL;
 SELECT pg_sleep(2);
 ALTER TABLE employees ALTER COLUMN salary SET NOT NULL;
+
+COMMIT;
 
 
 -- This SELECT is only here to let you know when the transaction has completed.

@@ -12,9 +12,9 @@
 |
 |    * Add a statement that acquires a lock with NOWAIT, so that the migration in
 |      this file will always complete successfully, and consistently takes around 2
-|      seconds. 
+|      seconds.
 |
-|      You will need to think about which file the `NOWAIT` statement must be 
+|      You will need to think about which file the `NOWAIT` statement must be
 |      added to, as well as where in the file it belongs.
 |
 |      Save the file and check this works.
@@ -30,10 +30,13 @@
 
 SELECT clock_timestamp() AS t INTO start_time_2;
 
+BEGIN;
+
 UPDATE employees SET name = 'UNKNOWN' WHERE name IS NULL;
 SELECT pg_sleep(2);
 ALTER TABLE employees ALTER COLUMN name SET NOT NULL;
 
+COMMIT;
 
 -- This SELECT is only here to let you know when the transaction has completed.
 SELECT clock_timestamp() - t AS duration,

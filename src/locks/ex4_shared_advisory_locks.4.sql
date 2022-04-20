@@ -37,6 +37,7 @@ INTO TEMPORARY initial_state FROM employees;
 -- SELECT pg_sleep(1.5);
 
 /* Reduce manager 6's salary by £1000 for each of their team members */
+BEGIN;
 UPDATE employees
   SET salary = salary - (1000 * sub.count)
   FROM ( SELECT COUNT(*) AS count FROM employees WHERE manager_id = 6 ) AS sub
@@ -46,6 +47,7 @@ COMMIT;
 SELECT pg_sleep(1.5);
 
 /* Increase each of manager 6's team members' salaries by £1000 */
+BEGIN;
 UPDATE employees SET salary = (salary + 1000) WHERE manager_id = 6;
 COMMIT;
 

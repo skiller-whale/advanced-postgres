@@ -21,11 +21,13 @@
 
 SELECT clock_timestamp() AS t INTO start_time_2;
 
+BEGIN;
 
 UPDATE employees SET manager_id = 1 WHERE id = 50;
 -- SELECT pg_sleep(2);
 UPDATE projects SET parent_project_id = 3 WHERE id = 25;
 
+COMMIT;
 
 -- This SELECT is only here to let you know when the transaction has completed.
 SELECT 'Success' AS transaction_2_completed,

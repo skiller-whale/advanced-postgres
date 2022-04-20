@@ -21,6 +21,7 @@
 |
 */ -----------------------------------------------------------------------------
 
+-- BEGIN;
 -- UPDATE employees set name = 'Marlin Scorsese' WHERE id = 1;
 -- COMMIT;
 

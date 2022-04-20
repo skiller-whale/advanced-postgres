@@ -8,6 +8,7 @@
 */ -----------------------------------------------------------------------------
 
 /* Update employee 20 to be managed by employee 6 */
+BEGIN;
 SELECT pg_sleep(2); UPDATE employees SET manager_id = 6 WHERE id = 20;
 COMMIT;
 

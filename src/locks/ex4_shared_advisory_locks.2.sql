@@ -11,14 +11,17 @@
 */ -----------------------------------------------------------------------------
 
 /* Update employee 19 to be managed by employee 6 */
+BEGIN;
 SELECT pg_sleep(1); UPDATE employees SET manager_id = 6 WHERE id = 19;
 COMMIT;
 
 /* Update the name of employee 6 */
+BEGIN;
 SELECT pg_sleep(1); UPDATE employees SET name = 'Ned Flounders' WHERE id = 6;
 COMMIT;
 
 /* Update employee 80 to be managed by employee 6 */
+BEGIN;
 SELECT pg_sleep(1.5); UPDATE employees SET manager_id = 6 WHERE id = 80;
 COMMIT;
 

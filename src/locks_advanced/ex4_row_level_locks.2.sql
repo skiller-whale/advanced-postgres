@@ -18,7 +18,11 @@
 SELECT clock_timestamp() AS t INTO start_time_2;
 SELECT pg_sleep(1);  -- Allow the other transaction to acquire some locks
 
+BEGIN;
+
 -- DELETE FROM employees WHERE id = 80;
+
+COMMIT;
 
 -- This SELECT is only here to let you know when the transaction has completed.
 SELECT clock_timestamp() - start_time_2.t AS transaction_2_duration
