@@ -20,11 +20,15 @@
 |
 */ -----------------------------------------------------------------------------
 
+BEGIN;
+
 UPDATE employees SET name = 'UNKNOWN' WHERE name IS NULL;
 
 -- SELECT pg_sleep(1);
 
 ALTER TABLE employees ALTER COLUMN name SET NOT NULL;
+
+COMMIT;
 
 
 -- This SELECT is only here to let you know when the transaction has completed.

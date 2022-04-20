@@ -12,10 +12,12 @@
 SELECT clock_timestamp() AS t INTO start_time_1;
 SELECT pg_sleep(1);  -- Allow the other transaction to acquire some locks
 
+BEGIN;
 
 UPDATE projects SET budget = 25000 WHERE id = 25;
 UPDATE employees SET name = 'Jeff Goldfishblum' WHERE id = 50;
 
+COMMIT;
 
 -- This SELECT is only here to let you know when the transaction has completed.
 SELECT 'Success' AS transaction_1_completed,

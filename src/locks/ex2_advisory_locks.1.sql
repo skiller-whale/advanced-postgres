@@ -1,7 +1,7 @@
 /* -----------------------------------------------------------------------------
 |
 |    2. Advisory locks
-|    
+|
 |    * Read the queries below and uncomment them.
 |    * Save this file, switch to ex2_advisory_locks.2.sql and follow the
 |      instructions there.

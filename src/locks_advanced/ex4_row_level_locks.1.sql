@@ -9,12 +9,14 @@
 
 SELECT clock_timestamp() AS t INTO start_time_1;
 
+BEGIN;
 
 UPDATE projects SET owner_id = 100 WHERE id = 4;
 UPDATE projects SET owner_id = 90 WHERE id = 4;
 
-
 SELECT pg_sleep(3);
+
+COMMIT;
 
 -- This SELECT is only here to let you know when the transaction has completed.
 SELECT clock_timestamp() - start_time_1.t AS transaction_1_duration

@@ -17,6 +17,8 @@
 |
 */ -----------------------------------------------------------------------------
 
+BEGIN;
+
 SELECT clock_timestamp() AS t INTO start_time;
 -- SELECT pg_sleep(1);  -- Allow the other transaction to acquire some locks
 
@@ -35,6 +37,8 @@ SELECT clock_timestamp() AS t INTO index_time;
 -- Drop the employees table
 DROP TABLE employees CASCADE;
 SELECT clock_timestamp() AS t INTO drop_time;
+
+COMMIT;
 
 
 SELECT (SELECT select_time.t - start_time.t AS select_time FROM start_time, select_time),

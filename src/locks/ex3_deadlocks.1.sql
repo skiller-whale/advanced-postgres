@@ -13,5 +13,5 @@
 -- UPDATE employees SET name='George Orwhale' WHERE id=1;
 -- SELECT pg_sleep(2);
 -- SELECT pg_advisory_lock(201);
--- 
+--
 -- SELECT id, name, clock_timestamp() FROM employees WHERE id=1;

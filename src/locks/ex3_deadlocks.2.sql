@@ -23,5 +23,5 @@
 -- UPDATE employees SET name='Eelton John' WHERE id=2;
 -- SELECT pg_sleep(3);
 -- SELECT pg_advisory_lock(200);
--- 
+--
 -- SELECT id, name, clock_timestamp() FROM employees WHERE id=2;

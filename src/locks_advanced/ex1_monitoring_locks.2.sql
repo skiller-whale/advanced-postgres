@@ -19,8 +19,12 @@
 |
 */ -----------------------------------------------------------------------------
 
+BEGIN;
+
 -- SELECT * FROM employees WHERE id = 1;
 -- SELECT pg_advisory_lock(100);
 -- UPDATE employees SET name = 'George Orwhale' WHERE id = 1;
 -- UPDATE projects SET owner_id = 60 where id = 1;
 -- SELECT pg_sleep(2);  -- Ensure this transaction completes after the other one
+
+COMMIT;

@@ -18,6 +18,10 @@
 |
 */ -----------------------------------------------------------------------------
 
+BEGIN;
+
 -- SELECT * FROM employees WHERE id = 10;
 
 SELECT pg_sleep(2);  -- Prevent this transaction from completing for 2 seconds
+
+COMMIT;
