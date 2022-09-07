@@ -106,7 +106,7 @@
 |    4. Multiple Base Queries
 |
 |    Copy your answer from above, then modify it, so the result only includes
-|    managers who and are not the owner of any projects. (Do this using multiple
+|    managers who are not the owner of any projects. (Do this using multiple
 |    base queries rather than a LEFT JOIN). You will probably want to use the
 |    EXCEPT keyword.
 |
@@ -192,9 +192,9 @@ salary_budget (including their own salary) that they are responsible for.
 
 Create a recursive CTE called `subprojects` that is similar to the
 `reports` CTE above. Instead of `id`, `manager_id` and `salary`, this will
-need to use the columns `id`, `base_owner_id` and `budget`. This CTE will
+need to use the columns `id`, `base_project_owner_id` and `budget`. This CTE will
 contain one row for each 'subproject - project' relationship (so that
-GROUP BY base_owner_id, SUM(budget) will give the total budget for projects
+GROUP BY base_project_owner_id, SUM(budget) will give the total budget for projects
 managed by each owner).
 
 The results of this CTE should contain 54 rows, with the columns
