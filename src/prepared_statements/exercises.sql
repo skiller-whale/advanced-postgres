@@ -56,8 +56,10 @@
 |    * Copy the query you wrote for section 1 below.
 |    * Edit the query to create a prepared statement:
 |       1. The statement should be called "find_local_employees"
-|       1. It should have two parameters, which should be used instead of
-           'Sales' and 'English'
+|       2. It should have two parameters, which should be used instead of
+|          'Sales' and 'English'
+|       3. Remove the `EXPLAIN ANALYZE`, so that the statement begins
+|          `SELECT employees.name`.
 |    * After creating the prepared statement, execute it with the parameters
 |      'Sales' and 'English'
 |    * Check the output in the window where you ran docker-compose up
@@ -115,9 +117,9 @@
 |      name of the statement the same.
 |    * Check whether you see any errors in the output.
 |
-|    Delete the statement you just wrote, and instead write a prepared 
+|    Delete the statement you just wrote, and instead write a prepared
 |    statement called "find" with a single VARCHAR parameter, which will
-|    "SELECT *" from the "employees" table where "name" is equal to the 
+|    "SELECT *" from the "employees" table where "name" is equal to the
 |    parameter value.
 |
 |    Can you pass prepared statement parameters to functions?
@@ -125,14 +127,14 @@
 |    * Edit your new prepared statement to compare `LOWER(name)` with `LOWER($1)`.
 |    * Check the output to see whether there are any error messages.
 |
-|    Can you pass column names as parameters to functions?
+|    Can you pass column names as parameters to prepared statements?
 |
 |    * Edit your new prepared statement to have another parameter, and replace
 |      the reference to the "name" column with a reference to the new parameter
 |      (using "employees.$2")
 |    * Check the output to see whether there are any error messages.
 |
-|    Can you pass table names as parameters to functions?
+|    Can you pass table names as parameters to prepared statements?
 |
 |    * Revert your new prepared statement to specify the "name" column, rather than
 |      using a parameter.
@@ -141,7 +143,7 @@
 |    * Check the output to see whether there are any error messages.
 |
 |    * Change the prepared statement back to only having one parameter, selecting
-|      from the employees table.
+|      from the employees table and comparing `name` with `$1`.
 |
 */ -----------------------------------------------------------------------------
 
@@ -157,7 +159,8 @@
 |      uncommented.
 |    * Write a line of code to list all prepared statements.
 |    * Check the output to see what is listed.
-|    * Deallocate the "find" prepared statement.
+|    * Add a line of code *before* that one which will deallocate the "find"
+|      prepared statement.
 |    * Check the list of all prepared statements again, and confirm that
 |      "find" is no longer listed.
 |
