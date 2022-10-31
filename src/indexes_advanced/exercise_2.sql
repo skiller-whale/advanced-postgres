@@ -3,7 +3,7 @@
 |    * Uncomment the EXPLAIN ANALYZE command and save the file. Make a note of
 |      the total cost and execution time from the query plan.
 |
-|    * Create an index that will reduce the execution speed of the query.
+|    * Create an index that will reduce the execution time of the query.
 |
 |    * The query plan will (probably) not use an index scan if you only added
 |      a CREATE INDEX statement. Think about why this is and add a command that
