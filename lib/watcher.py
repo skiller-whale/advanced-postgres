@@ -9,7 +9,7 @@ WATCHED_EXTS = [".sh", ".sql"]
 
 
 class Watcher:
-    def __init__(self, responder, base_path='.', output_lock=threading.Lock()):
+    def __init__(self, responder, base_path=".", output_lock=threading.Lock()):
         self.responder = responder
         self.base_path = base_path
         self.output_lock = output_lock
@@ -50,7 +50,7 @@ class Watcher:
             if os.path.isdir(new_path):
                 # Recursively check subdirectories
                 self._check_dir_for_changes(new_path)
-            else:
+            elif os.path.isfile(new_path):
                 self._respond_to_file_change(new_path)
 
     def poll_for_changes(self, wait_time=1, loop_callback=lambda: None):
@@ -71,5 +71,3 @@ class Watcher:
                 self._first_pass = False
 
             time.sleep(wait_time)  # Poll for changes every `wait_time` seconds
-
-
