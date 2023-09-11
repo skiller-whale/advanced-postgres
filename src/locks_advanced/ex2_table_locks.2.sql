@@ -3,7 +3,7 @@
 |    Follow the instructions in ex2_table_lock_levels.1.sql if you have not
 |    already done so.
 |
-|    * Try to predict which steps in the other file will blocked by the
+|    * Try to predict which steps in the other file will be blocked by the
 |      transaction in this file when the SELECT statement below is uncommented.
 |    * Uncomment the SELECT statement and check if your prediction was right.
 |      (any blocked operations will complete after 2 seconds instead of 1).
