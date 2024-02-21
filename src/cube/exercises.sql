@@ -82,7 +82,7 @@
 |    * Copy the query from the previous exercise below, and delete any GROUPING
 |      functions from the SELECT list.
 |
-|    * Add GROUPING indictors inside a HAVING clause to answer each of the
+|    * Add GROUPING indicators inside a HAVING clause to answer each of the
 |      following questions.
 |
 |      You can change the HAVING clause for each question, and also re-order the
@@ -108,7 +108,7 @@
 |      queries from the previous exercises but has three broad age ranges
 |      instead.
 |
-|    * Use a sum of GROUPING indictors to include only the rows that
+|    * Use a sum of GROUPING indicators to include only the rows that
 |      are grouped by exactly two values.
 |
 |    * Add an appropriate ORDER BY to the query to answer these two questions:
