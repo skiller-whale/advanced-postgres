@@ -112,7 +112,7 @@
 |    a) The 10 managers who are paid the least (you'll need to self-join the
 |       employees table to find which users are managers)
 |    b) The ids of the 10 managers who have the most direct reports
-|       (i.e. the COUNT of their direct reports salaries is highest)
+|       (i.e. the COUNT of their direct reports is highest)
 |
 |    JOIN together those two CTEs to find the intersection between the two
 |    datasets (the managers who are in the bottom 10 for their salary and
