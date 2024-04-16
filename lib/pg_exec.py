@@ -95,7 +95,8 @@ class PgExec:
                     print(f'{identifier_str}Query Complete. Results:')
                 print(tabulate.tabulate(query_rows,
                                         headers=query_columns,
-                                        tablefmt="psql"))
+                                        tablefmt="psql",
+                                        missingval="NULL"))
                 print(f'Row Count: {len(query_rows)}')
                 print()
 
