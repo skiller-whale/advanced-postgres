@@ -18,5 +18,5 @@ SELECT items.id, items.project_reference, categories.label
 FROM work_items items
 JOIN work_items subitems ON subitems.parent_work_item_id = items.id
 JOIN categories ON categories.id = subitems.category_id
-WHERE items.created_on > '2021-06-01'
+WHERE items.created_on > '2021-06-01' AND items.status = 'complete'
 ORDER BY subitems.parent_work_item_id
