@@ -6,7 +6,7 @@
 |    done so.
 |
 |    * Read the three queries below and uncomment them.
-|    * Save this file and see what timing is diplayed for the two queries (as
+|    * Save this file and see what timing is displayed for the two queries (as
 |      the clock_timestamp column)
 |    * In this file only, change the ID of the advisory lock to 101 and make a
 |      note of the difference in relative time between the two result sets.
