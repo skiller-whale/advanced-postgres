@@ -30,16 +30,16 @@ SELECT
   id,
   (SELECT clock_timestamp() - start_time.t AS total_time FROM start_time)
 FROM top_three_companies
-WHERE id = 2;
+WHERE id IN (1, 2);
 
 
 /* -----------------------------------------------------------------------------
 |
 |    3. Multiple Concurrent Refreshes
 |
-|    * Between the second and third SELECT statements in this file (line 26),
+|    * Between the second and third SELECT statements in this file (line 27),
 |      add the following update statement:
-|          UPDATE companies SET name = 'Twitturbot' WHERE id = 2;
+|          UPDATE companies SET name = 'Twitturbot' WHERE id = 1;
 |
 |    * Copy the REFRESH CONCURRENTLY command from refresh.2.sql to immediately
 |      after the UPDATE statement you just added in this file.
