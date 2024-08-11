@@ -62,16 +62,16 @@ GROUP BY employees.id, roles.name, countries.name, companies.name;
 |
 |    * Uncomment the command below. Before saving the file, think about what you
 |      roughly expect the query plan to look like (simple or complicated output).
+|    * Save the file to see if the query plan output matches your expectations.
 |
-|    * Save the file. Did the query plan output match your expectations?
+|    * After the CREATE, write a new query that SELECTs everything from the
+|      materialized view where the total_companies column is greater than 30.
+|      your query should return 8 rows.
 |
-|    * Make a note of the planning time and the execution time from the output.
-|
-|    * After the CREATE, write a new EXPLAIN ANALYZE that SELECTs everything from
-|      the materialized view. Before saving the file, think about how you expect 
-|      the timings to differ from creating the view.
-|
-|    * Save the file. Did the query plan output match your expectations?
+|    * Add an EXPLAIN ANALYZE to view the query plan. Before saving the file,
+|      think about what you expect the plan to look like, and how long execution
+|      will take.
+|    * Save the file to check if the query plan matches your expectations.
 |
 */ -----------------------------------------------------------------------------
 

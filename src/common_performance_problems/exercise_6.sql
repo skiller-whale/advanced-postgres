@@ -4,7 +4,7 @@
 |    work_items, using a UNION to combine categories from work_items and nested
 |    work_items (subitems).
 |
-|    * Uncomment the ANALYZE command, save the file and look at the ouput.
+|    * Uncomment the ANALYZE command, save the file and look at the output.
 |
 |    * Note how many rows are retrieved for the Append node, and how many
 |      _actual_ rows are returned in total. (This is the number in the second
