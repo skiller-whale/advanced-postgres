@@ -4,10 +4,11 @@
 |
 |    * Uncomment the query below, save this file, and have a look at the output.
 |
-|    * Use a UNION ALL to add the results from another SELECT ... GROUP BY
-|      statement that returns the number of albums, and average minutes
-|      grouped by n_tracks. Include n_tracks as a fourth column in the SELECT.
-|      (The two SELECTs must return the same set of columns for UNION to work)
+|    * Modify the query to include the count and average minutes for each
+|      record_label.
+|
+|      You'll need to use a UNION ALL to combine the two queries, and add the
+|      record_label as a fourth column in the SELECT.
 |
 */ -----------------------------------------------------------------------------
 
@@ -46,7 +47,7 @@
 |
 |  * Modify the query to include:
 |
-|       1. another grouping set that groups by record_label.
+|       1. another grouping set that groups by n_tracks.
 |       2. another aggregate in the SELECT list for the MAX of albums.minutes.
 |
 |    You should see the new grouping set included in the result set, and the
