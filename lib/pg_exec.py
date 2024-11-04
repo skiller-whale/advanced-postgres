@@ -3,7 +3,9 @@ import re
 import threading
 
 import psycopg2
+import sqlparse
 import tabulate
+import yaml
 
 from . import db_init
 
@@ -14,6 +16,10 @@ tabulate.PRESERVE_WHITESPACE = True
 
 class PgExec:
     DATABASE_NAME_FILE = '.db_name'
+    CONFIG_FILE        = '.config.yaml'
+
+    DEFAULT_CONFIG = { 'autocommit': False }
+
     # Matches any integer, surrounded by '.' just before the file extension
     # (e.g. the 11 in my_file.11.sql) using lookbehind and lookahead groups
     # Note: Because of the $ at the end, this can match at most one group.
@@ -35,7 +41,11 @@ class PgExec:
         # unless there is a postgres error, in which case they are rolled back.
         with connection:
             with connection.cursor() as cursor:
-                cursor.execute(sql)
+                for statement in sqlparse.split(sql):
+                    query = sqlparse.format(statement, strip_comments=True)
+                    query = query.strip()
+                    if query:
+                        cursor.execute(query)
 
                 if not cursor.description:  # If no columns are returned
                     return [], []
@@ -57,6 +67,20 @@ class PgExec:
 
         print(f"\nNo associated database found at {db_file}\n")
         return None
+
+    @classmethod
+    def get_config_from_path(cls, path):
+        """Returns the parsed contents of a .config.yaml file in the directory"""
+        dir_name, _ = os.path.split(path)
+        config_file = os.path.join(dir_name, cls.CONFIG_FILE)
+
+        if os.path.exists(config_file):
+            with open(config_file) as file:
+                config = file.read().strip()
+                if config:
+                    return yaml.safe_load(config)
+
+        return cls.DEFAULT_CONFIG
 
     def run_query(self, path, database_name, identifier=None, modify_connection=None):
         # Only display an identifier if one has been passed into the functino
@@ -149,13 +173,21 @@ class PgExec:
 
         return None
 
-    def run_threaded_queries(self, path, database_name):
+    def run_threaded_queries(self, path, database_name, config):
         paths_to_run = self._get_files_and_identifiers_to_run(path)
+
+        # If autocommit is enabled in the config, then we need to modify the
+        # connection accordingly. This will prevent the connection from
+        # automatically starting a new transaction for each cursor.
+        modify_connection = None
+        if config['autocommit']:
+            modify_connection = lambda conn: conn.set_session(autocommit=True)
+
         # Create one thread per related path to run.
         threads = [
             threading.Thread(
                 target=self.run_query,
-                args=(path, database_name, identifier)
+                args=(path, database_name, identifier, modify_connection)
             )
             for path, identifier in paths_to_run.items()
         ]
@@ -179,13 +211,15 @@ class PgExec:
     def file_changed(self, path):
         # Will run a query against the database named according to the path
         database_name = self.get_db_name_from_path(path)
+        config = self.get_config_from_path(path)
+
         if not database_name:
             return
 
         try:
             with self.DATABASE_LOCK:
                 self.prepare_database(path, database_name)
-                self.run_threaded_queries(path, database_name)
+                self.run_threaded_queries(path, database_name, config)
         except Exception as err:
             with self.output_lock:
                 print("Unexpected error running query:", err)
