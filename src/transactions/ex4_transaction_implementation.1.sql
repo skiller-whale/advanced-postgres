@@ -17,6 +17,9 @@
 -- SET label = 'Advertising'
 -- WHERE id = 4;
 
+-- INSERT INTO categories (id, label)
+-- VALUES (5, 'Operations');
+
 -- SELECT *, xmin, xmax, txid_current()
 -- FROM categories
 -- WHERE id = 4;
