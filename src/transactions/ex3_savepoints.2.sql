@@ -4,9 +4,9 @@
 |
 |    * Read the queries below, and uncomment them.
 |
-|    * Add statements to this file - without editing or moving any of the existing
-|      statements - so that the output from file one has categories with labels
-|      'FINANCE', 'SALES, 'DEV' and 'marketing'.
+|    * Add transaction management statements to this file - without editing or
+|      moving any of the existing statements - so that the output from file one
+|      has categories with labels 'FINANCE', 'SALES, 'DEV' and 'marketing'.
 |
 */ -----------------------------------------------------------------------------
 

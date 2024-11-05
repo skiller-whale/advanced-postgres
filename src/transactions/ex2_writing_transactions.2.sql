@@ -9,9 +9,10 @@
 |
 |    * Look at the output from the first file
 |
-|    * Add commands to this file - WITHOUT editing any of the existing commands
-|      so that the project insert will succeed and be visible to the other file,
-|      but the first work_item won't be visible if the second isn't.
+|    * Add transaction management commands to this file - WITHOUT editing any of
+|      the existing commands so that the project insert will succeed and be
+|      visible to the other file, but the first work_item won't be visible if
+|      the second isn't.
 |
 */ -----------------------------------------------------------------------------
 
