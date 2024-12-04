@@ -16,6 +16,12 @@
 |      LIMIT 10. Add ORDER BY created_on DESC to the query, save the file and
 |      see whether the output matches your prediction.
 |
+|    * Think about which column you could index to improve the performance of
+|      this query, then add the index.
+|
+|      The syntax for creating an index is:
+|      CREATE INDEX ON table_name (column_name);
+|
 */ -----------------------------------------------------------------------------
 
 -- ANALYZE;
