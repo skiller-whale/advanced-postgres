@@ -20,6 +20,8 @@
 -- INSERT INTO categories (id, label)
 -- VALUES (5, 'Operations');
 
+-- -- TODO: the other file will tell you to add new code here
+
 -- SELECT *, xmin, xmax, txid_current()
 -- FROM categories
 -- WHERE id = 4;

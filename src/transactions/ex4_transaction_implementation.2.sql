@@ -14,8 +14,6 @@ create extension pageinspect;
 
 SELECT pg_sleep(1);
 
--- -- TODO: your new code goes here
-
 -- SELECT * FROM categories;
 
 -- -- This shows all versions of each row stored on disk.
