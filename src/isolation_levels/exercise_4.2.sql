@@ -16,19 +16,25 @@
 |
 */ -----------------------------------------------------------------------------
 
+/*
+ * This file aims to implement a new policy: every manager should be paid 10000 more
+ * than their best-paid report.
+ *
+ * It will do that for manager id 46
+*/
 BEGIN;
 
 /*
- * This select the average salary of employees managed by 46, and stores it.
+ * This select the maximum salary of employees managed by 46, and stores it.
 */
--- SELECT AVG(salary) AS average INTO report_average
+-- SELECT MAX(salary) AS maximum INTO report_max
 -- FROM employees
 -- WHERE manager_id = 46;
 
 SELECT pg_sleep(1);
 
 -- UPDATE employees
--- SET salary = (SELECT average FROM report_average)
+-- SET salary = (SELECT maximum FROM report_max) + 10000
 -- WHERE id = 46;
 
 -- Sleep for 1 second to ensure the transactions overlap
@@ -39,11 +45,8 @@ COMMIT;
 SELECT pg_sleep(1);
 
 /*
- * This file ends by displaying the salaries of employee 46 and all employees
- * managed by them.
+ * This file ends by displaying a message if it has been successful.
  *
  * You can ignore it and focus on the rest of the file.
 */
--- SELECT id, salary
--- FROM employees
--- WHERE id = 46 OR manager_id = 46;
+SELECT 'successful' AS result;

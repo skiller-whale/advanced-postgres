@@ -14,13 +14,14 @@
 |
 */ -----------------------------------------------------------------------------
 
--- SELECT pg_sleep(0.5);
-
 /*
  * This file saves the name of employee 1 at 0.5s, 1.5s and 2.5s.
  *
  * Then it displays all the values found.
 */
+
+-- -- Make sure you uncomment this line!
+-- SELECT pg_sleep(0.5);
 
 -- 0.5 seconds in
 SELECT name INTO at_0_5 FROM employees WHERE id = 1;
