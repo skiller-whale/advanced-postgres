@@ -10,20 +10,27 @@
 |
 */ -----------------------------------------------------------------------------
 
+/*
+ * This file aims to implement a new policy: every manager's reports should be paid
+ * 10000 less than the manager themselves.
+ *
+ * It will do that for manager id 46.
+*/
+-- SELECT id, salary INTO before_changes
+-- FROM employees
+-- WHERE id = 46 OR manager_id = 46;
+
 BEGIN;
 
-/*
- * This stores employee 46's salary, then changes all employees managed by 46
- * to have a salary 10000 lower than that value.
-*/
--- -- Uncomment this!
--- SELECT salary INTO managers_salary FROM employees WHERE id = 46;
+-- SELECT salary INTO manager_salary
+-- FROM employees
+-- WHERE id = 46;
 
 SELECT pg_sleep(1);
 
 -- -- NOTE: Only uncomment this after you've followed the instructions above.
 -- UPDATE employees
--- SET salary = (SELECT salary FROM managers_salary) - 10000
+-- SET salary = (SELECT salary FROM manager_salary) - 10000
 -- WHERE manager_id = 46;
 
 SELECT pg_sleep(1);
@@ -34,11 +41,12 @@ SELECT pg_sleep(1);
 
 /*
  * This file ends by displaying the salaries of employee 46 and all employees
- * managed by them.
+ * managed by them, compared with the values before.
  *
  * You can ignore it and focus on the rest of the file.
 */
--- -- Uncomment this!
--- SELECT id, salary
+-- SELECT before_changes.id, before_changes.salary AS old_salary, employees.salary AS new_salary
 -- FROM employees
--- WHERE id = 46 OR manager_id = 46;
+-- JOIN before_changes
+--   ON before_changes.id = employees.id
+-- WHERE employees.id = 46 OR employees.manager_id = 46;
