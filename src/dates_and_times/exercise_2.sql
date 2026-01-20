@@ -11,7 +11,8 @@
 SELECT TIMESTAMP WITH TIME ZONE '10 January 1999 5:30-8' AS moment
 INTO exercise_datetime;
 
--- TODO 1. add a statement to this file so that `moment` is considered equal to the string `10/01/1999 13:30:00 UTC`.
+-- TODO 1. add a statement to this file to set the DateStyle so that the string `10/01/1999 13:30:00 UTC` is parsed
+-- to a timestamp that's equal to `moment`.
 
 
 -- TODO 2. Convert "moment" in the expression below to the America/Los_Angeles timezone to localise the time to Los Angeles
