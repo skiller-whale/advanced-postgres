@@ -3,7 +3,7 @@
 |    1. GROUP BY and aggregation functions
 |
 |    Uncomment the SQL query below, and save this file. The query should run,
-|    and you'll see results in the window where you ran docker-compose up.
+|    and you'll see results in the window where you ran docker compose up.
 |
 |    Make sure you understand how this query works. It uses all of the columns
 |    in the database except for students.name
