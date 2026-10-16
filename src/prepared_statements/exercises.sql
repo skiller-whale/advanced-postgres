@@ -3,7 +3,7 @@
 |    1. Sources of slowness
 |
 |    * Uncomment the SQL query below, and save this file. The query should run,
-|    and you'll see results in the window where you ran docker-compose up.
+|    and you'll see results in the window where you ran docker compose up.
 |    * Don't bother reading the query to understand what it's doing. That's not
 |    important for the problem you're going to be solving.
 |    * Add "EXPLAIN ANALYZE" to the start of the query, and save the file so it
@@ -62,7 +62,7 @@
 |          `SELECT employees.name`.
 |    * After creating the prepared statement, execute it with the parameters
 |      'Sales' and 'English'
-|    * Check the output in the window where you ran docker-compose up
+|    * Check the output in the window where you ran docker compose up
 |    * Add EXPLAIN ANALYZE in front of the statement where you execute the query
 |
 |    You probably won't see any improvement yet.

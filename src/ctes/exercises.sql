@@ -3,7 +3,7 @@
 |    1. Writing a CTE
 |
 |    Write a query below and then save this file. The query should run,
-|    and you'll see results in the window where you ran docker-compose up.
+|    and you'll see results in the window where you ran docker compose up.
 |
 |    This database has a table called employees with this structure:
 |      - id         (the employee's id)
